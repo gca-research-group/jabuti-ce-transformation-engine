@@ -1,14 +1,15 @@
 import { type JabutiGrammarListener } from 'jabuti-dsl-language-antlr/JabutiGrammarListener';
 import {
+  ClauseContext,
   type TimeoutContext,
   type DateContext,
-  type ClauseContext,
   type DueDateContext,
   type BeginDateContext,
   type DatesContext,
-  type MessageContentContext
+  type MessageContentContext,
+  type ClausesContext
 } from 'jabuti-dsl-language-antlr/JabutiGrammarParser';
-import { getDaysInMonth } from '../utils';
+import { findDuplicateWords, getDaysInMonth } from '../utils';
 
 export class SemanticValidor implements JabutiGrammarListener {
   enterDate(ctx: DateContext) {
@@ -54,6 +55,18 @@ export class SemanticValidor implements JabutiGrammarListener {
   exitMessageContent(ctx: MessageContentContext) {
     if (ctx.childCount === 4 && !['$.', '//'].includes(ctx.children?.[2].text.substring(1, 3) ?? '')) {
       throw new Error('MessageContente should either contain an xpath or a jsonpath');
+    }
+  }
+
+  enterClause(ctx: ClauseContext) {
+    const clauses = (ctx.parent as ClausesContext).children?.filter(
+      child => child instanceof ClauseContext
+    ) as unknown as ClauseContext[];
+    const clausesName = clauses?.map(
+      (clause: ClauseContext) => `${clause.children?.[0].text}${clause.children?.[1].text}`
+    );
+    if (clausesName?.length && findDuplicateWords(clausesName).length) {
+      throw new Error('The name of the clause with the type must be unique');
     }
   }
 
