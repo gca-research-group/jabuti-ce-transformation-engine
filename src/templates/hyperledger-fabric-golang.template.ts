@@ -70,12 +70,6 @@ type MaxNumberOfOperation struct {
         <%= term.name.pascal %> Timeout \`json:"<%= term.name.camel %>"\`
       <% } %>
   
-      <% if (term.type === 'messageContent') { %>
-  
-        
-        
-      <% } %>
-  
     <% }) %>
   }
 <% }) %>
@@ -405,6 +399,14 @@ func (s *SmartContract) QueryClientId(ctx contractapi.TransactionContextInterfac
         isValid = isValid && (accessDateTime.Before(asset.<%= clause.name.pascal %>.<%= term.name.pascal %>.End) || accessDateTime.Equal(asset.<%= clause.name.pascal %>.<%= term.name.pascal %>.End))
       <% } %>
 
+	  <% if (term.type === 'messageContent' && term.variables.length == 1) { %>
+        isValid = isValid && <%= term.variables[0].name %>
+      <% } %>
+
+	  <% if (term.type === 'messageContent' && term.variables.length == 2) { %>
+        isValid = isValid && <%= term.variables[0].name %> <%- term.comparator %> <%= term.variables[1].name %>
+      <% } %>
+
       <% if (term.type === 'maxNumberOfOperation') { %>
         maxNumberOfOperationIsInitialized<%= index %> := asset.<%= clause.name.pascal %>.<%= term.name.pascal %>.Start.IsZero() && asset.<%= clause.name.pascal %>.<%= term.name.pascal %>.End.IsZero()
 
@@ -428,8 +430,8 @@ func (s *SmartContract) QueryClientId(ctx contractapi.TransactionContextInterfac
       <% }) %>
     <% } %>
 
-    if !isValid { <% if (clause.errorMessage) { %>
-      return isValid, fmt.Errorf(<%- clause.errorMessage %>) <% } else { %>
+    if !isValid { <% if (clause.messages?.error) { %>
+      return isValid, fmt.Errorf(<%- clause.messages.error %>) <% } else { %>
       return isValid, fmt.Errorf("error executing clause: <%- clause.name.pascal %>")<% } %>
     }
 
