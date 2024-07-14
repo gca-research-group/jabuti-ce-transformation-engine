@@ -18,10 +18,8 @@ import {
   DateContext,
   ClauseContext,
   OnBreachContext
-} from 'jabuti-dsl-language-antlr/JabutiGrammarParser';
+} from 'jabuti-dsl-grammar-antlr/JabutiGrammarParser';
 import { type GrammarParser } from './grammar.parser';
-import { ParseTreeWalker } from 'antlr4ts/tree/ParseTreeWalker';
-import { SemanticValidor } from '../validators';
 import { capitalizeFirst } from '../utils';
 
 export class CanonicalParser {
@@ -29,9 +27,6 @@ export class CanonicalParser {
 
   parse(content: string) {
     const contract = this.grammarParser.parse(content);
-
-    const walker = new ParseTreeWalker();
-    walker.walk(new SemanticValidor(), contract);
 
     const contractName = contract.variableName()?.text;
 
