@@ -18,6 +18,7 @@
 
 ## Table of content
 - [Transformation engine model](#transformation-engine-model)
+- [Jabuti project papers](#jabuti-project-papers)
 - [Jabuti projetct repositories](#Jabuti-projetct-repositories)
 
 ## Jabuti project papers
