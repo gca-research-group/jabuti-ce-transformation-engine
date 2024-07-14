@@ -3,11 +3,15 @@ import { type Factory } from '../models';
 import { CanonicalParser, GrammarParser } from '../parsers';
 
 export class EthereumSolidityFactory implements Factory {
-  transform(constract: string) {
-    const grammar = new GrammarParser();
-    const canonical = new CanonicalParser(grammar);
-    const generator = new EthereumSolidityGenerator(canonical);
+  transform(contract: string) {
+    const grammarParser = new GrammarParser();
+    const grammarContext = grammarParser.parse(contract).contract();
 
-    return generator.generate(constract);
+    const canonicalParser = new CanonicalParser();
+    const canonicalContext = canonicalParser.parse(grammarContext);
+
+    const generator = new EthereumSolidityGenerator();
+
+    return generator.generate(canonicalContext);
   }
 }

@@ -4,12 +4,18 @@ import { type Factory } from '../models';
 import { CanonicalParser, GrammarParser } from '../parsers';
 
 export class HyperledgerFabricGolangFactory implements Factory {
-  transform(constract: string) {
-    const formatter = new HyperledgerFabricGolangFormatter();
-    const grammar = new GrammarParser();
-    const canonical = new CanonicalParser(grammar);
-    const generator = new HyperledgerFabricGolangGenerator(formatter, canonical);
+  transform(contract: string) {
+    const grammarParser = new GrammarParser();
+    const grammarContext = grammarParser.parse(contract).contract();
 
-    return generator.generate(constract);
+    const canonicalParser = new CanonicalParser();
+    const canonicalContext = canonicalParser.parse(grammarContext);
+
+    const generator = new HyperledgerFabricGolangGenerator();
+    const generated = generator.generate(canonicalContext);
+
+    const formatter = new HyperledgerFabricGolangFormatter();
+
+    return { ...generated, content: formatter.format(generated.content) };
   }
 }

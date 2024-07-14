@@ -1,3 +1,3 @@
-export interface Factory {
-  transform: (contract: string) => string[];
+export interface Factory<T = { content: string }> {
+  transform: (contract: string) => T;
 }
