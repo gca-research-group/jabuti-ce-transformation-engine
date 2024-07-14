@@ -7,7 +7,13 @@ import {
   type BeginDateContext,
   type DatesContext,
   type MessageContentContext,
-  type ClausesContext
+  type ClausesContext,
+  type ApplicationContext,
+  type OperationContext,
+  type RolePlayerContext,
+  type ProcessContext,
+  type TermsContext,
+  TermOrWhenContext
 } from 'jabuti-dsl-grammar-antlr/JabutiGrammarParser';
 import { findDuplicateWords, getDaysInMonth } from '../utils';
 
@@ -27,6 +33,10 @@ export class ValidationError extends Error {
 
 export class SemanticValidor implements JabutiGrammarListener {
   enterDate(ctx: DateContext) {
+    if (ctx.text === '') {
+      return;
+    }
+
     const month = +ctx.month().text;
     const day = +ctx.day().text;
     const year = +ctx.year().text;
@@ -35,6 +45,40 @@ export class SemanticValidor implements JabutiGrammarListener {
 
     if (day > maxDays) {
       throw new ValidationError('The date given appears to be invalid.', ctx);
+    }
+  }
+
+  enterApplication(ctx: ApplicationContext) {
+    if (!ctx.StringLiteral().text) {
+      throw new ValidationError('Application is required.', ctx);
+    }
+  }
+
+  enterProcess(ctx: ProcessContext) {
+    if (!ctx.StringLiteral().text) {
+      throw new ValidationError('Process is required.', ctx);
+    }
+  }
+
+  enterOperation(ctx: OperationContext) {
+    if (
+      ![ctx.Poll()?.text, ctx.Push()?.text, ctx.Read()?.text, ctx.Request()?.text, ctx.Response()?.text].some(
+        item => !!item
+      )
+    ) {
+      throw new ValidationError('Operation is required.', ctx);
+    }
+  }
+
+  exitTerms(ctx: TermsContext) {
+    if (ctx.children?.filter(item => item instanceof TermOrWhenContext).length === 0) {
+      throw new ValidationError('Terms should not be empty.', ctx);
+    }
+  }
+
+  enterRolePlayer(ctx: RolePlayerContext) {
+    if (!ctx.Application()?.text && !ctx.Process()?.text) {
+      throw new ValidationError('RolePlayer is required.', ctx);
     }
   }
 
@@ -65,7 +109,7 @@ export class SemanticValidor implements JabutiGrammarListener {
     const beginDate = dates.beginDate()[0].children?.[2].text;
     const dueDate = dates.dueDate()[0].children?.[2].text;
 
-    if (!beginDate) {
+    if (!dueDate) {
       throw new ValidationError('dueDate is required', ctx);
     }
 

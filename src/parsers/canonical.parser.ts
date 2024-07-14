@@ -26,7 +26,7 @@ export class CanonicalParser {
   constructor(private readonly grammarParser: GrammarParser) {}
 
   parse(content: string) {
-    const contract = this.grammarParser.parse(content);
+    const contract = this.grammarParser.parse(content).contract();
 
     const contractName = contract.variableName()?.text;
 
