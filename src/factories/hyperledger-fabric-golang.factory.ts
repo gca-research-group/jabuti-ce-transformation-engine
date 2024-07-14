@@ -1,9 +1,10 @@
 import { HyperledgerFabricGolangFormatter } from '../formatters';
 import { HyperledgerFabricGolangGenerator } from '../generators';
+import { type Factory } from '../models';
 import { CanonicalParser, GrammarParser } from '../parsers';
 
-export class HyperledgerFabricGolangFactory {
-  run(constract: string) {
+export class HyperledgerFabricGolangFactory implements Factory {
+  transform(constract: string) {
     const formatter = new HyperledgerFabricGolangFormatter();
     const grammar = new GrammarParser();
     const canonical = new CanonicalParser(grammar);
