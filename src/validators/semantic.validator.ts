@@ -114,7 +114,7 @@ export class SemanticValidor implements JabutiGrammarListener {
     }
 
     if (beginDate && dueDate && new Date(beginDate) > new Date(dueDate)) {
-      throw new ValidationError('beginDate should be greater than dueDate', ctx);
+      throw new ValidationError('dueDate should be greater than beginDate', ctx);
     }
   }
 

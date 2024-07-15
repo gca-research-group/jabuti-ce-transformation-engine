@@ -18,13 +18,14 @@ import {
   DateContext,
   ClauseContext,
   OnBreachContext,
-  type ContractContext
+  type JabutiGrammarParser
 } from 'jabuti-dsl-grammar-antlr/JabutiGrammarParser';
 import { capitalizeFirst } from '../utils';
 import { type Contract, type Clause } from '../models';
 
 export class CanonicalParser {
-  parse(context: ContractContext): Contract {
+  parse(parser: JabutiGrammarParser): Contract {
+    const context = parser.contract();
     const contractName = context.variableName()?.text ?? '';
 
     let beginDate: string = '';
