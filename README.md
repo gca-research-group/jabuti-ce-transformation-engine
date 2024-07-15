@@ -40,6 +40,7 @@ The transformation engine receives the Jabuti DSL contract, processes it and con
 <div align="center">
   <img src="transformation-engine.png">
 </div>
+
 ## License
 
 Copyright © 2023 [The Applied Computing Research Group (GCA)](https://github.com/gca-research-group).<br />
