@@ -1,0 +1,53 @@
+/**
+Business analysts at a certain e-commerce company determined a sales policy so that if the product
+delivered exceeds the scheduled delivery date, the customer would be entitled to a 5% discount coupon that could
+be used for future purchases. However, this policy would only be valid if the purchase value was equal to or
+exceeding \$300.00. This same campaign provided for the provision of a 3% coupon if the expected delivery date
+was not fulfilled and if the total purchase value was equal to or greater than $100.00. This campaign would be valid
+between 2024-06-06 and 2024-06-10.
+*/
+
+contract DiscountCouponLateDelivery {
+  dates {
+    beginDate = 2024-06-06 00:00
+    dueDate = 2024-06-10 23:59
+  }
+
+  parties {
+    application = "Delivery App"
+    process = "Integration Process"
+  }
+
+  variables {
+    totalPurchaseAmount = MessageContent("sum($.[*].value)")
+    deliveryDate = "$.deliveryDate"
+    expectedDate = "$.expectedDate"
+  }
+
+  clauses {
+    obligation purchasesBetween100USD300USD {
+      rolePlayer = application
+      operation = response
+
+      terms {
+        MessageContent(totalPurchaseAmount >= 100),
+        MessageContent(totalPurchaseAmount < 300),
+        MessageContent(deliveryDate > expectedDate)
+      }
+
+      onBreach(log("[100USD300USD] the delivery date was later than the expected date"))
+    }
+
+    obligation purchasesGreatherThan300USD {
+      rolePlayer = application
+      operation = response
+
+      terms {
+        MessageContent(totalPurchaseAmount > 300),
+        MessageContent(deliveryDate > expectedDate)
+      }
+
+      onBreach(log("[300USD] the delivery date was later than the expected date"))
+    }
+  }
+}
