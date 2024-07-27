@@ -1,4 +1,4 @@
 export interface Variable {
-  name: string;
+  name: { pascal: string; camel: string; snake: string };
   type: string;
 }

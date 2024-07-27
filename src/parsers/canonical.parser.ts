@@ -158,10 +158,14 @@ export class CanonicalParser {
 
                       termIndex++;
 
-                      // variables.push(...messageContent.variables);
                       variables = { ...variables, ...messageContent.variables };
 
-                      terms.push({ name, type: termType, ...messageContent });
+                      terms.push({
+                        name,
+                        type: termType,
+                        comparator: messageContent.comparator,
+                        variables: Object.values(messageContent.variables)
+                      });
                     }
                   });
                 });
@@ -192,7 +196,12 @@ export class CanonicalParser {
     // MessageContent('xpath')
     // MessageContent('jsonpath')
     if (term.childCount === 4) {
-      variables = { [`messageContent${index}`]: { name: `messageContent${index}`, type: 'boolean' } };
+      variables = {
+        [`messageContent${index}`]: {
+          name: { pascal: `MessageContent${index}`, camel: `messageContent${index}`, snake: `messageContent_${index}` },
+          type: 'boolean'
+        }
+      };
     }
 
     if (term.childCount === 6) {
@@ -202,15 +211,47 @@ export class CanonicalParser {
       const type = ['==', '!='].includes(comparator) ? 'TEXT' : 'NUMBER';
 
       if (value1 instanceof VariableNameContext) {
-        variables = { ...variables, [value1.text]: { name: value1.text, type } };
+        variables = {
+          ...variables,
+          [value1.text]: {
+            name: { pascal: capitalizeFirst(value1.text), camel: value1.text, snake: value1.text },
+            type
+          }
+        };
       } else {
-        variables = { ...variables, [`messageContent${index}1`]: { name: `messageContent${index}1`, type } };
+        variables = {
+          ...variables,
+          [`messageContent${index}1`]: {
+            name: {
+              pascal: `MessageContent${index}1`,
+              camel: `messageContent${index}1`,
+              snake: `messageContent_${index}_1`
+            },
+            type
+          }
+        };
       }
 
       if (value2 instanceof VariableNameContext) {
-        variables = { ...variables, [value2.text]: { name: value2.text, type } };
+        variables = {
+          ...variables,
+          [value2.text]: {
+            name: { pascal: capitalizeFirst(value2.text), camel: value2.text, snake: value2.text },
+            type
+          }
+        };
       } else {
-        variables = { ...variables, [`messageContent${index}2`]: { name: `messageContent${index}2`, type } };
+        variables = {
+          ...variables,
+          [`messageContent${index}2`]: {
+            name: {
+              pascal: `MessageContent${index}2`,
+              camel: `messageContent${index}2`,
+              snake: `messageContent_${index}_2`
+            },
+            type
+          }
+        };
       }
     }
 

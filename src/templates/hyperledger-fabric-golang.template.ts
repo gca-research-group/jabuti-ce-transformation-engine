@@ -84,6 +84,15 @@ type MaxNumberOfOperation struct {
   
     <% }) %>
   }
+
+  <% if (clause.variables?.length) { %>
+		type <%= clause.name.pascal %>Args struct {
+			<% clause.variables.forEach(variable => { %>
+				<%= variable.name.pascal %> <%= variable.type === 'TEXT' ? string : 'int' %> \`json:"<%= variable.name.camel %>"\`
+			<% }) %>
+		}
+	<% } %>
+
 <% }) %>
 
 type Asset struct {
@@ -366,16 +375,7 @@ func (s *SmartContract) QueryClientId(ctx contractapi.TransactionContextInterfac
 }
 
 <% clauses.forEach(clause => { %>
-  func (s *SmartContract) Clause<%= clause.name.pascal %> ( ctx contractapi.TransactionContextInterface, assetId string, <% clause.variables.map((variable, index) =>  { %>
-      <% if (variable.type === 'BOOLEAN') {%>
-        <%= \`\${variable.name} bool, \` %>
-      <% } else if (['DATE', 'DATETIME', 'TIME'].includes(variable.type)) {%>
-        <%= \`\${variable.name} time.Time, \` %>
-      <% } else { %>
-        <%= \`\${variable.name} \${['NUMBER', 'DATE', 'DATETIME', 'TIME'].includes(variable.type) ? 'int' : 'string'},\` %>
-      <% } %>
-    <% }) %> 
-  ) (bool, error) {
+  func (s *SmartContract) Clause<%= clause.name.pascal %> ( ctx contractapi.TransactionContextInterface, assetId string, args <%= clause.name.pascal %>Args  ) (bool, error) {
 
     var err error
     var asset *Asset
@@ -411,12 +411,12 @@ func (s *SmartContract) QueryClientId(ctx contractapi.TransactionContextInterfac
         isValid = isValid && (accessDateTime.Before(asset.<%= clause.name.pascal %>.<%= term.name.pascal %>.End) || accessDateTime.Equal(asset.<%= clause.name.pascal %>.<%= term.name.pascal %>.End))
       <% } %>
 
-	  <% if (term.type === 'messageContent' && term.variables.length == 1) { %>
-        isValid = isValid && <%= term.variables[0].name %>
+	    <% if (term.type === 'messageContent' && term.variables.length == 1) { %>
+        isValid = isValid && args.<%= term.variables[0].name.pascal %>
       <% } %>
 
-	  <% if (term.type === 'messageContent' && term.variables.length == 2) { %>
-        isValid = isValid && <%= term.variables[0].name %> <%- term.comparator %> <%= term.variables[1].name %>
+	    <% if (term.type === 'messageContent' && term.variables.length == 2) { %>
+        isValid = isValid && args.<%= term.variables[0].name.pascal %> <%- term.comparator %> args.<%= term.variables[1].name.pascal %>
       <% } %>
 
       <% if (term.type === 'maxNumberOfOperation') { %>
