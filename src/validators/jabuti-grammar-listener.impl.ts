@@ -31,7 +31,7 @@ export class ValidationError extends Error {
   }
 }
 
-export class SemanticValidor implements JabutiGrammarListener {
+export class JabutiGrammarListenerImpl implements JabutiGrammarListener {
   enterDate(ctx: DateContext) {
     if (ctx.text === '') {
       return;

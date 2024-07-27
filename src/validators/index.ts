@@ -1,1 +1,1 @@
-export * from './semantic.validator';
+export * from './jabuti-grammar-listener.impl';

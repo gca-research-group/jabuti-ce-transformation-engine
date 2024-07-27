@@ -22,11 +22,18 @@ import {
 } from 'jabuti-dsl-grammar-antlr/JabutiGrammarParser';
 import { capitalizeFirst } from '../utils';
 import { type Contract, type Clause } from '../models';
+import { JabutiGrammarListenerImpl } from '../validators';
+import { ParseTreeWalker } from 'antlr4ts/tree/ParseTreeWalker';
 
 export class CanonicalParser {
   parse(parser: JabutiGrammarParser): Contract {
-    const context = parser.contract();
-    const contractName = context.variableName()?.text ?? '';
+    const tree = parser.contract();
+
+    const listener = new JabutiGrammarListenerImpl();
+
+    ParseTreeWalker.DEFAULT.walk(listener, tree);
+
+    const contractName = tree.variableName()?.text ?? '';
 
     let beginDate: string = '';
     let dueDate: string = '';
@@ -35,7 +42,7 @@ export class CanonicalParser {
 
     const clauses: Clause[] = [];
 
-    context.children?.forEach(_item => {
+    tree.children?.forEach(_item => {
       if (_item instanceof VariablesContext) {
         _item.children?.forEach(_variable => {
           if (_variable instanceof VariableStatementContext) {
