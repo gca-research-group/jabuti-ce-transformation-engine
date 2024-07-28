@@ -59,21 +59,21 @@ export class HyperledgerFabricGolangGenerator
           }
         ]
       },
-      ...data.clauses.map(clause => ({ invoke: clause.name.pascal, args: ['<< asset id >>'] }))
-      // {
-      //   invoke: 'ClauseObligationPurchasesBetween100USD300USD',
-      //   args: [
-      //     '17819fdd-575e-46a7-aef9-9467ac9e8ad9',
-      //     250,
-      //     1717758000, // 2024-06-07 12:00:00
-      //     1717844400 // 2024-06-08 12:00:00
-      //   ]
-      // }
+      ...data.clauses.map(clause => ({
+        invoke: clause.name.pascal,
+        args: [
+          '<< asset id >>',
+          clause.variables.reduce<Record<string, string>>((acc, cur) => {
+            acc[cur.name.camel] = '';
+            return acc;
+          }, {})
+        ]
+      }))
     ];
   }
 
   private prepareDate(data: string) {
-    const pattern = /^(\d{4})-(\d{2})-(\d{2})(\d{2})?(\d{2})?(\d{2})?$/;
+    const pattern = /^(\d{4})-(\d{2})-(\d{2})(?:(\d{2}):(\d{2})(?::(\d{2}))?)?$/;
 
     const match = data.match(pattern);
 

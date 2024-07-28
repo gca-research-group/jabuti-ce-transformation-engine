@@ -18,6 +18,8 @@
     "invoke": "Init",
     "args": [
       {
+        "beginDate": "2024-06-06T00:00:00Z",
+        "dueDate": "2024-06-10T23:59:00Z",
         "parties": {
           "application": {
             "name": "Delivery App",
@@ -34,13 +36,23 @@
   {
     "invoke": "ObligationPurchasesBetween100USD300USD",
     "args": [
-      "<< asset id >>"
+      "<< asset id >>",
+      {
+        "totalPurchaseAmount": "",
+        "deliveryDate": "",
+        "expectedDate": ""
+      }
     ]
   },
   {
     "invoke": "ObligationPurchasesGreatherThan300USD",
     "args": [
-      "<< asset id >>"
+      "<< asset id >>",
+      {
+        "totalPurchaseAmount": "",
+        "deliveryDate": "",
+        "expectedDate": ""
+      }
     ]
   }
 ]
