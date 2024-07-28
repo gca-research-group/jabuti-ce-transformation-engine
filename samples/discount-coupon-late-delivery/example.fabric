@@ -1,0 +1,41 @@
+[
+    {
+        "invoke": "QueryClientId"
+    },
+    {
+        "invoke": "Sign",
+        "args": ["17819fdd-575e-46a7-aef9-9467ac9e8ad9"]
+    },
+    {
+        "invoke": "QueryAsset",
+        "args": ["9a5f9bdc-22e5-4c52-ad92-fb326bb19036"]
+    },
+    {
+        "invoke": "Init",
+        "args": [
+            {
+                "beginDate": "2024-06-06T00:00:00Z",
+                "dueDate": "2024-07-17T23:59:00Z",
+                "parties": {
+                    "application": {
+                        "name": "Delivery App",
+                        "id": "eDUwOTo6Q049b3JnMWFkbWluLE9VPWFkbWluLE89SHlwZXJsZWRnZXIsU1Q9Tm9ydGggQ2Fyb2xpbmEsQz1VUzo6Q049ZmFicmljLWNhLXNlcnZlcixPVT1GYWJyaWMsTz1IeXBlcmxlZGdlcixTVD1Ob3J0aCBDYXJvbGluYSxDPVVT"
+                    },
+                    "process": {
+                        "name": "Integration Process",
+                        "id":"eDUwOTo6Q049b3JnMWFkbWluLE9VPWFkbWluLE89SHlwZXJsZWRnZXIsU1Q9Tm9ydGggQ2Fyb2xpbmEsQz1VUzo6Q049ZmFicmljLWNhLXNlcnZlcixPVT1GYWJyaWMsTz1IeXBlcmxlZGdlcixTVD1Ob3J0aCBDYXJvbGluYSxDPVVT"
+                    }
+                }
+            }
+        ]
+    },
+    {
+        "invoke": "ClauseObligationPurchasesBetween100USD300USD",
+        "args": [
+            "17819fdd-575e-46a7-aef9-9467ac9e8ad9",
+            250,
+            1717758000, // 2024-06-07 12:00:00
+            1717844400 // 2024-06-08 12:00:00
+        ]
+    }
+]
