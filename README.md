@@ -20,7 +20,12 @@
 - [Transformation engine model](#transformation-engine-model)
 - [Jabuti projetct repositories](#Jabuti-projetct-repositories)
 
-## Jabuti project repositories
+## Jabuti project papers
+- [Advances in a DSL to Specify Smart Contracts for Application Integration Processes](https://sol.sbc.org.br/index.php/cibse/article/view/20962)
+- [On the Need to Use Smart Contracts in Enterprise Application Integration](https://idus.us.es/handle/11441/140199)
+- [Jabuti CE: A Tool for Specifying Smart Contracts in the Domain of Enterprise Application Integration](https://www.scitepress.org/Link.aspx?doi=10.5220/0012413300003645)
+
+## Jabuti projetct repositories
 - VSCode based projects
   - [jabuti-ce-jabuti-dsl-grammar](https://github.com/gca-research-group/jabuti-ce-jabuti-dsl-grammar)
   - [jabuti-ce-transformation-engine](https://github.com/gca-research-group/jabuti-ce-transformation-engine)
