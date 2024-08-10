@@ -3,7 +3,7 @@
   "description": "A package to transform Jabuti DSL contract into other smart contract languages",
   "author": "The Applied Computing Research Group <mailson.borges@sou.unijui.edu.br> (GCA)",
   "homepage": "https://github.com/gca-research-group/jabuti-ce-transformation-engine#readme",
-  "version": "0.0.1",
+  "version": "0.0.8",
   "main": "main.js",
   "license": "MIT",
   "keywords": [
@@ -27,14 +27,14 @@
     "eslint-plugin-prettier": "^5.1.3",
     "eslint-plugin-promise": "^6.2.0",
     "prettier": "^3.3.1",
+    "prettier-plugin-solidity": "^1.3.1",
     "ts-node": "^10.9.2",
     "tsup": "^8.1.0",
-    "typescript": "^5.4.0",
-    "prettier-plugin-solidity": "^1.3.1"
+    "typescript": "^5.4.0"
   },
   "dependencies": {
-    "jabuti-dsl-grammar-antlr": "file:jabuti-dsl-grammar-antlr-0.0.1.tgz",
-    "antlr4ts": "^0.5.0-alpha.4"
+    "antlr4ts": "^0.5.0-alpha.4",
+    "jabuti-dsl-grammar-antlr": "file:jabuti-dsl-grammar-antlr-0.0.1.tgz"
   },
   "repository": {
     "type": "git",

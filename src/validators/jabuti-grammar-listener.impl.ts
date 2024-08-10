@@ -2,7 +2,6 @@ import { type JabutiGrammarListener } from 'jabuti-dsl-grammar-antlr/JabutiGramm
 import {
   ClauseContext,
   type TimeoutContext,
-  type DateContext,
   type DueDateContext,
   type BeginDateContext,
   type DatesContext,
@@ -13,9 +12,9 @@ import {
   type RolePlayerContext,
   type ProcessContext,
   type TermsContext,
-  TermOrWhenContext
+  type DatetimeContext
 } from 'jabuti-dsl-grammar-antlr/JabutiGrammarParser';
-import { findDuplicateWords, getDaysInMonth } from '../utils';
+import { findDuplicateWords, getDaysInMonth, string2Date } from '../utils';
 
 import { type ParserRuleContext } from 'antlr4ts';
 
@@ -32,7 +31,7 @@ export class ValidationError extends Error {
 }
 
 export class JabutiGrammarListenerImpl implements JabutiGrammarListener {
-  enterDate(ctx: DateContext) {
+  enterDate(ctx: DatetimeContext) {
     if (ctx.text === '') {
       return;
     }
@@ -41,7 +40,7 @@ export class JabutiGrammarListenerImpl implements JabutiGrammarListener {
     const day = +ctx.day().text;
     const year = +ctx.year().text;
 
-    const maxDays = getDaysInMonth(year, month);
+    const maxDays = getDaysInMonth(year, month, ctx);
 
     if (day > maxDays) {
       throw new ValidationError('The date given appears to be invalid.', ctx);
@@ -49,13 +48,13 @@ export class JabutiGrammarListenerImpl implements JabutiGrammarListener {
   }
 
   enterApplication(ctx: ApplicationContext) {
-    if (!ctx.StringLiteral().text) {
+    if (!ctx.String().text) {
       throw new ValidationError('Application is required.', ctx);
     }
   }
 
   enterProcess(ctx: ProcessContext) {
-    if (!ctx.StringLiteral().text) {
+    if (!ctx.String().text) {
       throw new ValidationError('Process is required.', ctx);
     }
   }
@@ -71,7 +70,7 @@ export class JabutiGrammarListenerImpl implements JabutiGrammarListener {
   }
 
   exitTerms(ctx: TermsContext) {
-    if (ctx.children?.filter(item => item instanceof TermOrWhenContext).length === 0) {
+    if ((ctx.children?.length ?? 0) < 4) {
       throw new ValidationError('Terms should not be empty.', ctx);
     }
   }
@@ -99,7 +98,7 @@ export class JabutiGrammarListenerImpl implements JabutiGrammarListener {
       throw new ValidationError('beginDate is required', ctx);
     }
 
-    if (beginDate && dueDate && new Date(beginDate) > new Date(dueDate)) {
+    if (beginDate && dueDate && string2Date(beginDate, ctx) > string2Date(dueDate, ctx)) {
       throw new ValidationError('dueDate should be greater than beginDate', ctx);
     }
   }
@@ -113,7 +112,7 @@ export class JabutiGrammarListenerImpl implements JabutiGrammarListener {
       throw new ValidationError('dueDate is required', ctx);
     }
 
-    if (beginDate && dueDate && new Date(beginDate) > new Date(dueDate)) {
+    if (beginDate && dueDate && string2Date(beginDate, ctx) > string2Date(dueDate, ctx)) {
       throw new ValidationError('dueDate should be greater than beginDate', ctx);
     }
   }

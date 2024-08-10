@@ -8,16 +8,14 @@ import {
   ProcessContext,
   VariableStatementContext,
   ClausesContext,
+  type JabutiGrammarParser,
   TermsContext,
   TermOrWhenContext,
   MessageContentContext,
   TermContext,
   TimeoutContext,
-  NumberContext,
-  VariableNameContext,
   ClauseContext,
   OnBreachContext,
-  type JabutiGrammarParser,
   DatetimeContext
 } from 'jabuti-dsl-grammar-antlr/JabutiGrammarParser';
 import { capitalizeFirst } from '../utils';
@@ -33,7 +31,7 @@ export class CanonicalParser {
 
     ParseTreeWalker.DEFAULT.walk(listener, tree);
 
-    const contractName = tree.variableName()?.text ?? '';
+    const contractName = tree.ID()?.text ?? '';
 
     let beginDate: string = '';
     let dueDate: string = '';
@@ -94,7 +92,7 @@ export class CanonicalParser {
         _item.children?.forEach(_clauses => {
           if (_clauses instanceof ClauseContext) {
             const clauseType: string = _clauses.children?.[0].text ?? '';
-            const name: string = _clauses.variableName().text;
+            const name: string = _clauses.ID().text;
             const clauseName = {
               pascal: `${capitalizeFirst(clauseType)}${capitalizeFirst(name)}`,
               camel: `${clauseType.toLocaleLowerCase()}${capitalizeFirst(name)}`,
@@ -131,7 +129,7 @@ export class CanonicalParser {
                   _term.children?.forEach(_operation => {
                     if (_operation instanceof TimeoutContext) {
                       _operation.children?.forEach(_timeout => {
-                        if (_timeout instanceof NumberContext) {
+                        if (!isNaN(Number(_timeout?.text))) {
                           const termType = 'timeout';
                           const name = {
                             pascal: `${clauseName.pascal}${capitalizeFirst(termType)}${termIndex}`,
@@ -237,7 +235,7 @@ export class CanonicalParser {
 
     if (!isNaN(Number(value1?.text))) {
       response.push(value1?.text);
-    } else if (value1 instanceof VariableNameContext) {
+    } else if (value1 && !value1.text.startsWith('"')) {
       response.push({
         name: { pascal: capitalizeFirst(value1.text), camel: value1.text, snake: value1.text },
         type
@@ -257,7 +255,7 @@ export class CanonicalParser {
 
     if (!isNaN(Number(value2?.text))) {
       response.push(value2?.text);
-    } else if (value2 instanceof VariableNameContext) {
+    } else if (value2 && !value2.text.startsWith('"')) {
       response.push({
         name: { pascal: capitalizeFirst(value2.text), camel: value2.text, snake: value2.text },
         type

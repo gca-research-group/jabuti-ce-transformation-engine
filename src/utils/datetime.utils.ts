@@ -1,3 +1,6 @@
+import { type ParserRuleContext } from 'antlr4ts';
+import { ValidationError } from '../validators';
+
 /**
  * Determines if a given year is a leap year.
  * @param year The year to check.
@@ -13,7 +16,7 @@ function isLeapYear(year: number): boolean {
  * @param month The month (1 = January, 2 = February, ..., 12 = December).
  * @returns The number of days in the month.
  */
-export function getDaysInMonth(year: number, month: number): number {
+export function getDaysInMonth(year: number, month: number, ctx: ParserRuleContext): number {
   switch (month) {
     case 1: // January
     case 3: // March
@@ -31,6 +34,20 @@ export function getDaysInMonth(year: number, month: number): number {
     case 2: // February
       return isLeapYear(year) ? 29 : 28;
     default:
-      throw new Error('Invalid month');
+      throw new ValidationError('Invalid month', ctx);
   }
+}
+
+export function string2Date(data: string, ctx: ParserRuleContext) {
+  const pattern = /^(\d{4})-(\d{2})-(\d{2})(?:(\d{2}):(\d{2})(?::(\d{2}))?)?$/;
+
+  const match = data.match(pattern);
+
+  if (!match) {
+    throw new ValidationError('Invalid date', ctx);
+  }
+
+  const [, year, month, day, hour, minute, second] = match;
+
+  return new Date(+year, +month - 1, +day, +(hour ?? 0), +(minute ?? 0), +(second ?? 0));
 }
