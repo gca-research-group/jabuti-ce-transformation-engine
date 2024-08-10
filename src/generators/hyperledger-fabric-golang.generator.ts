@@ -1,6 +1,6 @@
 import { HYPERLEDGER_FABRIC_GOLANG_TEMPLATE } from '../templates/hyperledger-fabric-golang.template';
 import { BaseGenerator } from './base.generator';
-import { type Formatter } from '../models';
+import { type Generator, type Formatter } from '../models';
 import { type CanonicalParser } from '../parsers/canonical.parser';
 
 const GO_MOD_FILE = `
@@ -16,7 +16,7 @@ require github.com/hyperledger/fabric-chaincode-go v0.0.0-20230731094759-d626e9a
 
 `;
 
-export class HyperledgerFabricGolangGenerator extends BaseGenerator {
+export class HyperledgerFabricGolangGenerator extends BaseGenerator implements Generator {
   constructor(
     private readonly formatter: Formatter,
     protected readonly canonicalParser: CanonicalParser
