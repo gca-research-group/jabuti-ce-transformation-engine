@@ -15,10 +15,10 @@ import {
   TimeoutContext,
   NumberContext,
   VariableNameContext,
-  DateContext,
   ClauseContext,
   OnBreachContext,
-  type JabutiGrammarParser
+  type JabutiGrammarParser,
+  DatetimeContext
 } from 'jabuti-dsl-grammar-antlr/JabutiGrammarParser';
 import { capitalizeFirst } from '../utils';
 import { type Contract, type Clause, type Variable } from '../models';
@@ -62,7 +62,7 @@ export class CanonicalParser {
         _item.children?.forEach(_date => {
           if (_date instanceof BeginDateContext) {
             _date.children?.forEach(_beginDate => {
-              if (_beginDate instanceof DateContext) {
+              if (_beginDate instanceof DatetimeContext) {
                 beginDate = _beginDate.text;
               }
             });
@@ -70,7 +70,7 @@ export class CanonicalParser {
 
           if (_date instanceof DueDateContext) {
             _date.children?.forEach(_dueDate => {
-              if (_dueDate instanceof DateContext) {
+              if (_dueDate instanceof DatetimeContext) {
                 dueDate = _dueDate.text;
               }
             });
@@ -103,7 +103,6 @@ export class CanonicalParser {
             const rolePlayer = _clauses.rolePlayer().children?.[2].text;
             const operation = _clauses.rolePlayer().children?.[2].text;
             const terms: any[] = [];
-            // const variables: Array<{ name: string; type: string }> = [];
             let variables: Record<string, Variable> = {};
             const messages = { error: '', success: '' };
 
@@ -154,18 +153,47 @@ export class CanonicalParser {
                         snake: `${clauseName.snake}_${termType}_${termIndex}`
                       };
 
-                      const messageContent = this.parseMessageContent(_operation, termIndex);
+                      const parameters = this.parseMessageContent(_operation, termIndex);
+
+                      if (parameters?.length === 1) {
+                        if (typeof parameters[0] !== 'number' && typeof parameters[0] !== 'string' && parameters[0]) {
+                          variables = {
+                            ...variables,
+                            ...{ [parameters[0].name.camel]: parameters[0] }
+                          };
+                        }
+
+                        terms.push({
+                          name,
+                          type: termType,
+                          variables: parameters
+                        });
+                      }
+
+                      if (parameters?.length === 3) {
+                        if (typeof parameters[0] !== 'number' && typeof parameters[0] !== 'string' && parameters[0]) {
+                          variables = {
+                            ...variables,
+                            ...{ [parameters[0].name.camel]: parameters[0] }
+                          };
+                        }
+
+                        if (typeof parameters[2] !== 'number' && typeof parameters[2] !== 'string' && parameters[2]) {
+                          variables = {
+                            ...variables,
+                            ...{ [parameters[2].name.camel]: parameters[2] }
+                          };
+                        }
+
+                        terms.push({
+                          name,
+                          type: termType,
+                          comparator: parameters[1],
+                          variables: [parameters[0], parameters[2]]
+                        });
+                      }
 
                       termIndex++;
-
-                      variables = { ...variables, ...messageContent.variables };
-
-                      terms.push({
-                        name,
-                        type: termType,
-                        comparator: messageContent.comparator,
-                        variables: Object.values(messageContent.variables)
-                      });
                     }
                   });
                 });
@@ -190,71 +218,61 @@ export class CanonicalParser {
   }
 
   parseMessageContent(term: MessageContentContext, index: number) {
-    let variables: Record<string, Variable> = {};
-    let comparator: string | undefined;
-
     // MessageContent('xpath')
     // MessageContent('jsonpath')
     if (term.childCount === 4) {
-      variables = {
-        [`messageContent${index}`]: {
+      return [
+        {
           name: { pascal: `MessageContent${index}`, camel: `messageContent${index}`, snake: `messageContent_${index}` },
           type: 'boolean'
         }
-      };
+      ];
     }
 
-    if (term.childCount === 6) {
-      const value1 = term.children?.[2];
-      const value2 = term.children?.[4];
-      comparator = term.children?.[3].text as unknown as string;
-      const type = ['==', '!='].includes(comparator) ? 'TEXT' : 'NUMBER';
+    const value1 = term.children?.[2];
+    const value2 = term.children?.[4];
+    const comparator = term.children?.[3].text as unknown as string;
+    const type = ['==', '!='].includes(comparator) ? 'TEXT' : 'NUMBER';
+    const response = [];
 
-      if (value1 instanceof VariableNameContext) {
-        variables = {
-          ...variables,
-          [value1.text]: {
-            name: { pascal: capitalizeFirst(value1.text), camel: value1.text, snake: value1.text },
-            type
-          }
-        };
-      } else {
-        variables = {
-          ...variables,
-          [`messageContent${index}1`]: {
-            name: {
-              pascal: `MessageContent${index}1`,
-              camel: `messageContent${index}1`,
-              snake: `messageContent_${index}_1`
-            },
-            type
-          }
-        };
-      }
-
-      if (value2 instanceof VariableNameContext) {
-        variables = {
-          ...variables,
-          [value2.text]: {
-            name: { pascal: capitalizeFirst(value2.text), camel: value2.text, snake: value2.text },
-            type
-          }
-        };
-      } else {
-        variables = {
-          ...variables,
-          [`messageContent${index}2`]: {
-            name: {
-              pascal: `MessageContent${index}2`,
-              camel: `messageContent${index}2`,
-              snake: `messageContent_${index}_2`
-            },
-            type
-          }
-        };
-      }
+    if (!isNaN(Number(value1?.text))) {
+      response.push(value1?.text);
+    } else if (value1 instanceof VariableNameContext) {
+      response.push({
+        name: { pascal: capitalizeFirst(value1.text), camel: value1.text, snake: value1.text },
+        type
+      });
+    } else {
+      response.push({
+        name: {
+          pascal: `MessageContent${index}1`,
+          camel: `messageContent${index}1`,
+          snake: `messageContent_${index}_1`
+        },
+        type
+      });
     }
 
-    return { variables, comparator };
+    response.push(comparator);
+
+    if (!isNaN(Number(value2?.text))) {
+      response.push(value2?.text);
+    } else if (value2 instanceof VariableNameContext) {
+      response.push({
+        name: { pascal: capitalizeFirst(value2.text), camel: value2.text, snake: value2.text },
+        type
+      });
+    } else {
+      response.push({
+        name: {
+          pascal: `MessageContent${index}2`,
+          camel: `messageContent${index}2`,
+          snake: `messageContent_${index}_2`
+        },
+        type
+      });
+    }
+
+    return response;
   }
 }

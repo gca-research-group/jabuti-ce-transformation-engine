@@ -16,14 +16,14 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-  "log"
+  	"log"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
-	"github.com/hyperledger/fabric-chaincode-go/pkg/cid"
 )
 
+<% if (clauses.some(clause => clause.terms.some(term => term.type == 'maxNumberOfOperation'))) { %>
 var timeInSeconds = map[string]int{
 	"SECOND": 1,
 	"MINUTE": 1 * 60,
@@ -32,6 +32,7 @@ var timeInSeconds = map[string]int{
 	"WEEK":   1 * 60 * 60 * 24 * 7,
 	"MONTH":  1 * 60 * 60 * 24 * 7 * 30,
 }
+<% }%>
 
 type SmartContract struct {
 	contractapi.Contract
@@ -416,7 +417,7 @@ func (s *SmartContract) QueryClientId(ctx contractapi.TransactionContextInterfac
       <% } %>
 
 	    <% if (term.type === 'messageContent' && term.variables.length == 2) { %>
-        isValid = isValid && args.<%= term.variables[0].name.pascal %> <%- term.comparator %> args.<%= term.variables[1].name.pascal %>
+        isValid = isValid && <%= term.variables[0]?.name ? 'args.' + term.variables[0]?.name?.pascal : term.variables[0]  %> <%- term.comparator %> <%= term.variables[1]?.name?.pascal ? 'args.' + term.variables[1]?.name?.pascal : term.variables[1] %>
       <% } %>
 
       <% if (term.type === 'maxNumberOfOperation') { %>
