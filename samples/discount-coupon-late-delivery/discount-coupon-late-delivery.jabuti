@@ -1,10 +1,7 @@
 /**
-Business analysts at a certain e-commerce company determined a sales policy so that if the product
-delivered exceeds the scheduled delivery date, the customer would be entitled to a 5% discount coupon that could
-be used for future purchases. However, this policy would only be valid if the purchase value was equal to or
-exceeding \$300.00. This same campaign provided for the provision of a 3% coupon if the expected delivery date
-was not fulfilled and if the total purchase value was equal to or greater than $100.00. This campaign would be valid
-between 2024-06-06 and 2024-06-10.
+ * Policy 1: Customers who have spent $300.00 or more and affected by delayed deliveries are entitled to 5% discount vouchers to spend on subsequent purchases.
+ * Policy 2: Customers who have spent $100.00 or more and affected by delayed deliveries are entitled to 3% discount vouchers to spend on subsequent purchases.
+ * Policy 3: Policy 1 and Policy 2 apply only from 2024-06-06 to 2024-06-10, inclusive.
 */
 
 contract DiscountCouponLateDelivery {
