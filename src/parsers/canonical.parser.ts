@@ -8,7 +8,6 @@ import {
   ProcessContext,
   VariableStatementContext,
   ClausesContext,
-  ObligationContext,
   TermsContext,
   TermOrWhenContext,
   MessageContentContext,
@@ -16,12 +15,13 @@ import {
   TimeoutContext,
   NumberContext,
   VariableNameContext,
-  DateContext
+  DateContext,
+  ClauseContext
 } from 'jabuti-dsl-language-antlr/JabutiGrammarParser';
-import { capitalizeFirst } from '../utils/capitalize-first';
 import { type GrammarParser } from './grammar.parser';
 import { ParseTreeWalker } from 'antlr4ts/tree/ParseTreeWalker';
 import { SemanticValidor } from '../validators';
+import { capitalizeFirst } from '../utils';
 
 export class CanonicalParser {
   constructor(private readonly grammarParser: GrammarParser) {}
@@ -104,9 +104,9 @@ export class CanonicalParser {
 
       if (_item instanceof ClausesContext) {
         _item.children?.forEach(_clauses => {
-          if (_clauses instanceof ObligationContext) {
-            const clauseType = _clauses.children?.[0].text ?? '';
-            const name = _clauses.variableName().text;
+          if (_clauses instanceof ClauseContext) {
+            const clauseType: string = _clauses.children?.[0].text ?? '';
+            const name: string = _clauses.variableName().text;
             const clauseName = {
               pascal: `${capitalizeFirst(clauseType)}${capitalizeFirst(name)}`,
               camel: `${clauseType.toLocaleLowerCase()}${capitalizeFirst(name)}`,
