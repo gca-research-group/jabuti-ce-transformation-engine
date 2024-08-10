@@ -17,44 +17,24 @@ import {
   VariableNameContext,
   DateContext,
   ClauseContext,
-  OnBreachContext
+  OnBreachContext,
+  type ContractContext
 } from 'jabuti-dsl-grammar-antlr/JabutiGrammarParser';
-import { type GrammarParser } from './grammar.parser';
 import { capitalizeFirst } from '../utils';
+import { type Contract, type Clause } from '../models';
 
 export class CanonicalParser {
-  constructor(private readonly grammarParser: GrammarParser) {}
+  parse(context: ContractContext): Contract {
+    const contractName = context.variableName()?.text ?? '';
 
-  parse(content: string) {
-    const contract = this.grammarParser.parse(content).contract();
+    let beginDate: string = '';
+    let dueDate: string = '';
+    let application: string = '';
+    let process: string = '';
 
-    const contractName = contract.variableName()?.text;
+    const clauses: Clause[] = [];
 
-    let beginDate: string | undefined;
-    let dueDate: string | undefined;
-    let application: string | undefined;
-    let process: string | undefined;
-
-    const clauses: Array<{
-      variables: Array<{ name: string; type: string }>;
-      name: {
-        pascal: string;
-        camel: string;
-        snake: string;
-      };
-      type: string | undefined;
-      rolePlayer: string | undefined;
-      operation: string | undefined;
-      terms: Array<{
-        type: string | undefined;
-        variable: string | undefined;
-        symbol: string | undefined;
-        value: string | undefined;
-      }>;
-      messages: { error: string; success: string };
-    }> = [];
-
-    contract.children?.forEach(_item => {
+    context.children?.forEach(_item => {
       if (_item instanceof VariablesContext) {
         _item.children?.forEach(_variable => {
           if (_variable instanceof VariableStatementContext) {
@@ -93,11 +73,11 @@ export class CanonicalParser {
       if (_item instanceof PartiesContext) {
         _item.children?.forEach(_party => {
           if (_party instanceof ApplicationContext) {
-            application = _party.children?.[2].text;
+            application = _party.children?.[2].text ?? '';
           }
 
           if (_party instanceof ProcessContext) {
-            process = _party.children?.[2].text;
+            process = _party.children?.[2].text ?? '';
           }
         });
       }
@@ -184,7 +164,7 @@ export class CanonicalParser {
       }
     });
 
-    return { contractName, beginDate, dueDate, application, process, variables: [], clauses };
+    return { name: contractName, beginDate, dueDate, application, process, variables: [], clauses };
   }
 
   parseMessageContent(term: MessageContentContext, index: number) {
