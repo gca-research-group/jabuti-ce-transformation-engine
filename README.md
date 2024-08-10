@@ -30,7 +30,7 @@
   - [Jabuti DSL Grammar](https://github.com/gca-research-group/jabuti-ce-jabuti-dsl-grammar)
   - [Transformation Engine](https://github.com/gca-research-group/jabuti-ce-transformation-engine)
   - [VSCode Plugin](https://github.com/gca-research-group/jabuti-ce-vscode-plugin)
-- XText based project
+- Eclipse based projects
   - [XText/Xtend implementation](https://github.com/gca-research-group/dsl-smart-contract-eai)
 
 ## Transformation engine model
@@ -40,7 +40,22 @@ The transformation engine receives the Jabuti DSL contract, processes it and con
   <img src="assets/transformation-engine.png">
 </div>
 
-## License
+## How to execute
+```typescript
+const grammarParser = new GrammarParser();
+const grammarContext = grammarParser.parse(contract);
 
+const canonicalParser = new CanonicalParser();
+const canonicalContext = canonicalParser.parse(grammarContext);
+
+const generator = new HyperledgerFabricGolangGenerator();
+const generated = generator.generate(canonicalContext);
+
+const formatter = new HyperledgerFabricGolangFormatter();
+
+const generatedSmartContract = formatter.format(generated.content);
+```
+
+## License
 Copyright © 2023 [The Applied Computing Research Group (GCA)](https://github.com/gca-research-group).<br />
 This project is [MIT](https://github.com/gca-research-group/jabuti-dsl-language-model-transformation/blob/master/LICENSE) licensed.
