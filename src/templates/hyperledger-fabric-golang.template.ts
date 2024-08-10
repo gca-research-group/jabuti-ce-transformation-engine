@@ -72,13 +72,7 @@ type MaxNumberOfOperation struct {
   
       <% if (term.type === 'messageContent') { %>
   
-        <% if (term.arguments.type === 'BOOLEAN') { %>
-          <%= term.name.pascal %> bool \`json:"<%= term.name.camel %>"\`
-        <% } else if (term.arguments.type === 'NUMBER') { %>
-          <%= term.name.pascal %> int \`json:"<%= term.name.camel %>"\`
-        <% } else if (term.arguments.type === 'TEXT') { %>
-          <%= term.name.pascal %> string \`json:"<%= term.name.camel %>"\`
-        <% } %>
+        
         
       <% } %>
   
@@ -409,14 +403,6 @@ func (s *SmartContract) QueryClientId(ctx contractapi.TransactionContextInterfac
 
       <% if (term.type === 'timeout') { %>
         isValid = isValid && (accessDateTime.Before(asset.<%= clause.name.pascal %>.<%= term.name.pascal %>.End) || accessDateTime.Equal(asset.<%= clause.name.pascal %>.<%= term.name.pascal %>.End))
-      <% } %>
-
-      <% if (term.type === 'messageContent' && term.arguments.type === 'TEXT') { %>
-        isValid = isValid && asset.<%= clause.name.pascal %>.<%= term.name.pascal %> <%- term.arguments.operator %> <%= term.name.camel %>
-      <% } %>
-
-      <% if (term.type === 'messageContent' && term.arguments.type !== 'TEXT') { %>
-        isValid = isValid && asset.<%= clause.name.pascal %>.<%= term.name.pascal %> <%- term.arguments.operator %> <%= term.name.camel %>
       <% } %>
 
       <% if (term.type === 'maxNumberOfOperation') { %>
