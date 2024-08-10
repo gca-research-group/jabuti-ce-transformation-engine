@@ -16,7 +16,8 @@ import {
   NumberContext,
   VariableNameContext,
   DateContext,
-  ClauseContext
+  ClauseContext,
+  OnBreachContext
 } from 'jabuti-dsl-language-antlr/JabutiGrammarParser';
 import { type GrammarParser } from './grammar.parser';
 import { ParseTreeWalker } from 'antlr4ts/tree/ParseTreeWalker';
@@ -39,8 +40,6 @@ export class CanonicalParser {
     let application: string | undefined;
     let process: string | undefined;
 
-    const variables: Array<{ name: string | undefined; value: string | undefined }> = [];
-
     const clauses: Array<{
       variables: Array<{ name: string; type: string }>;
       name: {
@@ -57,15 +56,21 @@ export class CanonicalParser {
         symbol: string | undefined;
         value: string | undefined;
       }>;
+      messages: { error: string; success: string };
     }> = [];
 
     contract.children?.forEach(_item => {
       if (_item instanceof VariablesContext) {
         _item.children?.forEach(_variable => {
           if (_variable instanceof VariableStatementContext) {
-            const name = _variable.children?.[0].text;
-            const value = _variable.children?.[2].text;
-            variables.push({ name, value });
+            // const name = _variable.children?.[0].text;
+            if (_variable.children?.[2] instanceof TermContext) {
+              const current = _variable.children?.[2].children?.[0];
+
+              if (current instanceof MessageContentContext) {
+                // this.parseMessageContent(current);
+              }
+            }
           }
         });
       }
@@ -115,8 +120,17 @@ export class CanonicalParser {
             const rolePlayer = _clauses.rolePlayer().children?.[2].text;
             const operation = _clauses.rolePlayer().children?.[2].text;
             const terms: any[] = [];
+            const variables: Array<{ name: string; type: string }> = [];
+            const messages = { error: '', success: '' };
+
+            let termIndex = 0;
 
             _clauses.children?.forEach(_clause => {
+              if (_clause instanceof OnBreachContext) {
+                messages.error = _clause.children?.[4].text ?? '';
+                return;
+              }
+
               if (!(_clause instanceof TermsContext)) {
                 return;
               }
@@ -131,71 +145,91 @@ export class CanonicalParser {
                     return;
                   }
 
-                  _term.children?.forEach((_operation, index) => {
+                  _term.children?.forEach(_operation => {
                     if (_operation instanceof TimeoutContext) {
                       _operation.children?.forEach(_timeout => {
                         if (_timeout instanceof NumberContext) {
                           const termType = 'timeout';
                           const name = {
-                            pascal: `${clauseName.pascal}${capitalizeFirst(termType)}${index}`,
-                            camel: `${clauseName.camel}${capitalizeFirst(termType)}${index}`,
-                            snake: `${clauseName.snake}_${termType}_${index}`
+                            pascal: `${clauseName.pascal}${capitalizeFirst(termType)}${termIndex}`,
+                            camel: `${clauseName.camel}${capitalizeFirst(termType)}${termIndex}`,
+                            snake: `${clauseName.snake}_${termType}_${termIndex}`
                           };
+                          termIndex++;
                           terms.push({ name, type: 'timeout', value: _timeout.text });
                         }
                       });
                     }
 
                     if (_operation instanceof MessageContentContext) {
-                      let variable1: string | undefined;
-                      let variable2: string | undefined;
-                      let comparator: string | undefined;
-                      let path1: string | undefined;
-                      let path2: string | undefined;
-
-                      if (_operation.childCount === 4) {
-                        path1 = _operation.children?.[2].text as unknown as string;
-                      }
-
-                      if (_operation.childCount === 6) {
-                        const value1 = _operation.children?.[2];
-                        const value2 = _operation.children?.[4];
-                        comparator = _operation.children?.[3].text as unknown as string;
-
-                        if (value1 instanceof VariableNameContext) {
-                          variable1 = value1.text as unknown as string;
-                        } else {
-                          path1 = value1?.text as unknown as string;
-                        }
-
-                        if (value2 instanceof VariableNameContext) {
-                          variable2 = value2.text as unknown as string;
-                        } else {
-                          path2 = value2?.text as unknown as string;
-                        }
-                      }
-
                       const termType = 'messageContent';
 
                       const name = {
-                        pascal: `${clauseName.pascal}${capitalizeFirst(termType)}${index}`,
-                        camel: `${clauseName.camel}${capitalizeFirst(termType)}${index}`,
-                        snake: `${clauseName.snake}_${termType}_${index}`
+                        pascal: `${clauseName.pascal}${capitalizeFirst(termType)}${termIndex}`,
+                        camel: `${clauseName.camel}${capitalizeFirst(termType)}${termIndex}`,
+                        snake: `${clauseName.snake}_${termType}_${termIndex}`
                       };
 
-                      terms.push({ name, type: termType, variable1, variable2, comparator, path1, path2 });
+                      const messageContent = this.parseMessageContent(_operation, termIndex);
+
+                      termIndex++;
+
+                      variables.push(...messageContent.variables);
+
+                      terms.push({ name, type: termType, ...messageContent });
                     }
                   });
                 });
               });
             });
 
-            clauses.push({ name: clauseName, type: clauseType, variables: [], rolePlayer, operation, terms });
+            clauses.push({ name: clauseName, type: clauseType, variables, rolePlayer, operation, terms, messages });
           }
         });
       }
     });
 
-    return { contractName, beginDate, dueDate, application, process, variables, clauses };
+    return { contractName, beginDate, dueDate, application, process, variables: [], clauses };
+  }
+
+  parseMessageContent(term: MessageContentContext, index: number) {
+    const variables: Array<{ name: string; type: any }> = [];
+    let comparator: string | undefined;
+
+    if (term.childCount === 4) {
+      variables.push({ name: `messageContent${index}`, type: 'boolean' });
+    }
+
+    if (term.childCount === 6) {
+      const value1 = term.children?.[2];
+      const value2 = term.children?.[4];
+      comparator = term.children?.[3].text as unknown as string;
+      const type = ['==', '!='].includes(comparator) ? 'TEXT' : 'NUMBER';
+
+      if (typeof value1 === 'number' || typeof value2 === 'number') {
+        variables.push({ name: `messageContent${index}1`, type: 'NUMBER' });
+        variables.push({ name: `messageContent${index}2`, type: 'NUMBER' });
+      } else if (!(value1 instanceof VariableNameContext) && !(value2 instanceof VariableNameContext)) {
+        variables.push({
+          name: `messageContent${index}1`,
+          type
+        });
+        variables.push({ name: `messageContent${index}2`, type });
+      } else if (value1 instanceof VariableNameContext && !(value2 instanceof VariableNameContext)) {
+        variables.push({ name: `${value1.text}${index}1`, type });
+        variables.push({ name: `messageContent${index}2`, type });
+      } else if (!(value1 instanceof VariableNameContext) && value2 instanceof VariableNameContext) {
+        variables.push({ name: `messageContent${index}1`, type });
+        variables.push({ name: `${value2.text}${index}2`, type });
+      } else if (value1 instanceof VariableNameContext && value2 instanceof VariableNameContext) {
+        variables.push({ name: `${value1.text}${index}1`, type });
+        variables.push({ name: `${value2.text}${index}2`, type });
+      } else {
+        variables.push({ name: `messageContent${index}1`, type: 'BOOLEAN' });
+        variables.push({ name: `messageContent${index}2`, type: 'BOOLEAN' });
+      }
+    }
+
+    return { variables, comparator };
   }
 }
