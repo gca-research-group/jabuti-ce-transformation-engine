@@ -12,7 +12,6 @@
 <div align="center">
   <img src="https://img.shields.io/badge/hyperledger-2F3134?style=for-the-badge&logo=hyperledger&logoColor=white">
   <img src="https://img.shields.io/badge/Ethereum-3C3C3D?style=for-the-badge&logo=Ethereum&logoColor=white">
-  
 </div>
 
 <br>
@@ -21,10 +20,11 @@
 - [Transformation engine model](#transformation-engine-model)
 - [Jabuti projetct repositories](#Jabuti-projetct-repositories)
 
-## Jabuti projetct repositories
+## Jabuti project repositories
 - VSCode based projects
   - [jabuti-ce-jabuti-dsl-grammar](https://github.com/gca-research-group/jabuti-ce-jabuti-dsl-grammar)
   - [jabuti-ce-transformation-engine](https://github.com/gca-research-group/jabuti-ce-transformation-engine)
+  - [jabuti-ce-vscode-plugin](https://github.com/gca-research-group/jabuti-ce-vscode-plugin)
 - XText based project
   - [dsl-smart-contract-eai](https://github.com/gca-research-group/dsl-smart-contract-eai)
 
