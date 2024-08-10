@@ -3,7 +3,7 @@
   "description": "A package to transform Jabuti DSL contract into other smart contract languages",
   "author": "The Applied Computing Research Group <mailson.borges@sou.unijui.edu.br> (GCA)",
   "homepage": "https://github.com/gca-research-group/jabuti-ce-transformation-engine#readme",
-  "version": "0.0.1-alpha",
+  "version": "0.0.1",
   "main": "main.js",
   "license": "MIT",
   "keywords": [
