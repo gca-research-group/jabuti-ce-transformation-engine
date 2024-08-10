@@ -1,0 +1,46 @@
+[
+  {
+    "invoke": "QueryClientId"
+  },
+  {
+    "invoke": "Sign",
+    "args": [
+      "<< asset id >>"
+    ]
+  },
+  {
+    "invoke": "QueryAsset",
+    "args": [
+      "<< asset id >>"
+    ]
+  },
+  {
+    "invoke": "Init",
+    "args": [
+      {
+        "parties": {
+          "application": {
+            "name": "Delivery App",
+            "id": "<< app 1 id >>"
+          },
+          "process": {
+            "name": "Integration Process",
+            "id": "<< app 2 id >>"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "invoke": "ObligationPurchasesBetween100USD300USD",
+    "args": [
+      "<< asset id >>"
+    ]
+  },
+  {
+    "invoke": "ObligationPurchasesGreatherThan300USD",
+    "args": [
+      "<< asset id >>"
+    ]
+  }
+]
