@@ -21,7 +21,7 @@ import {
   type JabutiGrammarParser
 } from 'jabuti-dsl-grammar-antlr/JabutiGrammarParser';
 import { capitalizeFirst } from '../utils';
-import { type Contract, type Clause } from '../models';
+import { type Contract, type Clause, type Variable } from '../models';
 import { JabutiGrammarListenerImpl } from '../validators';
 import { ParseTreeWalker } from 'antlr4ts/tree/ParseTreeWalker';
 
@@ -103,7 +103,8 @@ export class CanonicalParser {
             const rolePlayer = _clauses.rolePlayer().children?.[2].text;
             const operation = _clauses.rolePlayer().children?.[2].text;
             const terms: any[] = [];
-            const variables: Array<{ name: string; type: string }> = [];
+            // const variables: Array<{ name: string; type: string }> = [];
+            let variables: Record<string, Variable> = {};
             const messages = { error: '', success: '' };
 
             let termIndex = 0;
@@ -157,7 +158,8 @@ export class CanonicalParser {
 
                       termIndex++;
 
-                      variables.push(...messageContent.variables);
+                      // variables.push(...messageContent.variables);
+                      variables = { ...variables, ...messageContent.variables };
 
                       terms.push({ name, type: termType, ...messageContent });
                     }
@@ -166,7 +168,15 @@ export class CanonicalParser {
               });
             });
 
-            clauses.push({ name: clauseName, type: clauseType, variables, rolePlayer, operation, terms, messages });
+            clauses.push({
+              name: clauseName,
+              type: clauseType,
+              variables: Object.values(variables),
+              rolePlayer,
+              operation,
+              terms,
+              messages
+            });
           }
         });
       }
@@ -176,11 +186,13 @@ export class CanonicalParser {
   }
 
   parseMessageContent(term: MessageContentContext, index: number) {
-    const variables: Array<{ name: string; type: any }> = [];
+    let variables: Record<string, Variable> = {};
     let comparator: string | undefined;
 
+    // MessageContent('xpath')
+    // MessageContent('jsonpath')
     if (term.childCount === 4) {
-      variables.push({ name: `messageContent${index}`, type: 'boolean' });
+      variables = { [`messageContent${index}`]: { name: `messageContent${index}`, type: 'boolean' } };
     }
 
     if (term.childCount === 6) {
@@ -189,27 +201,16 @@ export class CanonicalParser {
       comparator = term.children?.[3].text as unknown as string;
       const type = ['==', '!='].includes(comparator) ? 'TEXT' : 'NUMBER';
 
-      if (typeof value1 === 'number' || typeof value2 === 'number') {
-        variables.push({ name: `messageContent${index}1`, type: 'NUMBER' });
-        variables.push({ name: `messageContent${index}2`, type: 'NUMBER' });
-      } else if (!(value1 instanceof VariableNameContext) && !(value2 instanceof VariableNameContext)) {
-        variables.push({
-          name: `messageContent${index}1`,
-          type
-        });
-        variables.push({ name: `messageContent${index}2`, type });
-      } else if (value1 instanceof VariableNameContext && !(value2 instanceof VariableNameContext)) {
-        variables.push({ name: `${value1.text}${index}1`, type });
-        variables.push({ name: `messageContent${index}2`, type });
-      } else if (!(value1 instanceof VariableNameContext) && value2 instanceof VariableNameContext) {
-        variables.push({ name: `messageContent${index}1`, type });
-        variables.push({ name: `${value2.text}${index}2`, type });
-      } else if (value1 instanceof VariableNameContext && value2 instanceof VariableNameContext) {
-        variables.push({ name: `${value1.text}${index}1`, type });
-        variables.push({ name: `${value2.text}${index}2`, type });
+      if (value1 instanceof VariableNameContext) {
+        variables = { ...variables, [value1.text]: { name: value1.text, type } };
       } else {
-        variables.push({ name: `messageContent${index}1`, type: 'BOOLEAN' });
-        variables.push({ name: `messageContent${index}2`, type: 'BOOLEAN' });
+        variables = { ...variables, [`messageContent${index}1`]: { name: `messageContent${index}1`, type } };
+      }
+
+      if (value2 instanceof VariableNameContext) {
+        variables = { ...variables, [value2.text]: { name: value2.text, type } };
+      } else {
+        variables = { ...variables, [`messageContent${index}2`]: { name: `messageContent${index}2`, type } };
       }
     }
 
