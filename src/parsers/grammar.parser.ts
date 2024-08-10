@@ -1,12 +1,23 @@
 import { CharStreams, CommonTokenStream } from 'antlr4ts';
-import { JabutiGrammarLexer } from 'jabuti-dsl-language-antlr/JabutiGrammarLexer';
-import { JabutiGrammarParser } from 'jabuti-dsl-language-antlr/JabutiGrammarParser';
+import { JabutiGrammarLexer } from 'jabuti-dsl-grammar-antlr/JabutiGrammarLexer';
+import { JabutiGrammarParser } from 'jabuti-dsl-grammar-antlr/JabutiGrammarParser';
+
+import { ParseTreeWalker } from 'antlr4ts/tree/ParseTreeWalker';
+import { SemanticValidor } from '../validators';
 
 export class GrammarParser {
   parse(contract: string) {
     const inputStream = CharStreams.fromString(contract);
     const lexer = new JabutiGrammarLexer(inputStream);
     const tokenStream = new CommonTokenStream(lexer);
-    return new JabutiGrammarParser(tokenStream).contract();
+    const parser = new JabutiGrammarParser(tokenStream);
+
+    parser.removeErrorListeners();
+    lexer.removeErrorListeners();
+
+    const walker = new ParseTreeWalker();
+    walker.walk(new SemanticValidor(), parser.contract());
+
+    return parser.contract();
   }
 }

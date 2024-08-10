@@ -1,4 +1,4 @@
-import { type JabutiGrammarListener } from 'jabuti-dsl-language-antlr/JabutiGrammarListener';
+import { type JabutiGrammarListener } from 'jabuti-dsl-grammar-antlr/JabutiGrammarListener';
 import {
   ClauseContext,
   type TimeoutContext,
@@ -8,8 +8,22 @@ import {
   type DatesContext,
   type MessageContentContext,
   type ClausesContext
-} from 'jabuti-dsl-language-antlr/JabutiGrammarParser';
+} from 'jabuti-dsl-grammar-antlr/JabutiGrammarParser';
 import { findDuplicateWords, getDaysInMonth } from '../utils';
+
+import { type ParserRuleContext } from 'antlr4ts';
+
+export class ValidationError extends Error {
+  range?: { start: { line: number; character: number }; end: { line?: number; character?: number } };
+
+  constructor(message: string, ctx: ParserRuleContext) {
+    super(message);
+    this.range = {
+      start: { line: ctx.start.line, character: ctx.start.charPositionInLine },
+      end: { line: ctx.stop?.line, character: ctx.stop?.charPositionInLine }
+    };
+  }
+}
 
 export class SemanticValidor implements JabutiGrammarListener {
   enterDate(ctx: DateContext) {
@@ -20,7 +34,7 @@ export class SemanticValidor implements JabutiGrammarListener {
     const maxDays = getDaysInMonth(year, month);
 
     if (day > maxDays) {
-      throw new Error('The date given appears to be invalid.');
+      throw new ValidationError('The date given appears to be invalid.', ctx);
     }
   }
 
@@ -28,7 +42,7 @@ export class SemanticValidor implements JabutiGrammarListener {
     const clause = ctx.parent?.parent?.parent?.parent as ClauseContext;
     const operation = clause.operation().children?.[2].text;
     if (operation !== 'response') {
-      throw new Error('Timeout should only be present in clauses with response type operations');
+      throw new ValidationError('Timeout should only be present in clauses with response type operations', ctx);
     }
   }
 
@@ -37,8 +51,12 @@ export class SemanticValidor implements JabutiGrammarListener {
     const beginDate = dates.beginDate()[0].children?.[2].text;
     const dueDate = dates.dueDate()[0].children?.[2].text;
 
+    if (!beginDate) {
+      throw new ValidationError('beginDate is required', ctx);
+    }
+
     if (beginDate && dueDate && new Date(beginDate) > new Date(dueDate)) {
-      throw new Error('dueDate should be greater than beginDate');
+      throw new ValidationError('dueDate should be greater than beginDate', ctx);
     }
   }
 
@@ -47,8 +65,12 @@ export class SemanticValidor implements JabutiGrammarListener {
     const beginDate = dates.beginDate()[0].children?.[2].text;
     const dueDate = dates.dueDate()[0].children?.[2].text;
 
+    if (!beginDate) {
+      throw new ValidationError('dueDate is required', ctx);
+    }
+
     if (beginDate && dueDate && new Date(beginDate) > new Date(dueDate)) {
-      throw new Error('beginDate should be greater than dueDate');
+      throw new ValidationError('beginDate should be greater than dueDate', ctx);
     }
   }
 
@@ -59,7 +81,7 @@ export class SemanticValidor implements JabutiGrammarListener {
         ctx.children?.[2].text.startsWith(`"${item}`)
       )
     ) {
-      throw new Error('MessageContent should either contain an xpath or a jsonpath');
+      throw new ValidationError('MessageContent should either contain an xpath or a jsonpath', ctx);
     }
   }
 
@@ -71,7 +93,7 @@ export class SemanticValidor implements JabutiGrammarListener {
       (clause: ClauseContext) => `${clause.children?.[0].text}${clause.children?.[1].text}`
     );
     if (clausesName?.length && findDuplicateWords(clausesName).length) {
-      throw new Error('The name of the clause with the type must be unique');
+      throw new ValidationError('The name of the clause with the type must be unique', ctx);
     }
   }
 
