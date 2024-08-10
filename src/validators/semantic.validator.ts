@@ -53,8 +53,13 @@ export class SemanticValidor implements JabutiGrammarListener {
   }
 
   exitMessageContent(ctx: MessageContentContext) {
-    if (ctx.childCount === 4 && !['$.', '//'].includes(ctx.children?.[2].text.substring(1, 3) ?? '')) {
-      throw new Error('MessageContente should either contain an xpath or a jsonpath');
+    if (
+      ctx.childCount === 4 &&
+      !['$.', '//', 'sum($.', 'count($.', 'sum(//', 'count(//'].some(item =>
+        ctx.children?.[2].text.startsWith(`"${item}`)
+      )
+    ) {
+      throw new Error('MessageContent should either contain an xpath or a jsonpath');
     }
   }
 
