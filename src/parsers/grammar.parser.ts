@@ -12,9 +12,6 @@ export class GrammarParser {
     const tokenStream = new CommonTokenStream(lexer);
     const parser = new JabutiGrammarParser(tokenStream);
 
-    parser.removeErrorListeners();
-    lexer.removeErrorListeners();
-
     const walker = new ParseTreeWalker();
     walker.walk(new SemanticValidor(), parser.contract());
 

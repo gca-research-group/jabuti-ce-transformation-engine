@@ -6,7 +6,7 @@ import { CanonicalParser, GrammarParser } from '../parsers';
 export class HyperledgerFabricGolangFactory implements Factory {
   transform(contract: string) {
     const grammarParser = new GrammarParser();
-    const grammarContext = grammarParser.parse(contract).contract();
+    const grammarContext = grammarParser.parse(contract);
 
     const canonicalParser = new CanonicalParser();
     const canonicalContext = canonicalParser.parse(grammarContext);
