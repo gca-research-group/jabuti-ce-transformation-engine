@@ -18,6 +18,6 @@ export class GrammarParser {
     const walker = new ParseTreeWalker();
     walker.walk(new SemanticValidor(), parser.contract());
 
-    return parser.contract();
+    return parser;
   }
 }
