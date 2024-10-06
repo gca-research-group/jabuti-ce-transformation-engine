@@ -1,0 +1,52 @@
+[
+  {
+    "invoke": "QueryClientId"
+  },
+  {
+    "invoke": "Sign",
+    "args": [
+      "<< asset id >>"
+    ]
+  },
+  {
+    "invoke": "QueryAsset",
+    "args": [
+      "<< asset id >>"
+    ]
+  },
+  {
+    "invoke": "Init",
+    "args": [
+      {
+        "beginDate": "2023-01-01T08:00:00Z",
+        "dueDate": "2023-12-31T18:00:00Z",
+        "parties": {
+          "application": {
+            "name": "Web Of Science",
+            "id": "<< app 1 id >>"
+          },
+          "process": {
+            "name": "Integration Process",
+            "id": "<< app 2 id >>"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "invoke": "RightRequestDocuments",
+    "args": [
+      "<< asset id >>",
+      {
+        "messageContent02": ""
+      }
+    ]
+  },
+  {
+    "invoke": "ObligationResponseWithDocuments",
+    "args": [
+      "<< asset id >>",
+      {}
+    ]
+  }
+]

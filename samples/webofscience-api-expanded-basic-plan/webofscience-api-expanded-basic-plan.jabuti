@@ -1,0 +1,36 @@
+contract ApiExpandedBasicPlan {
+
+	dates {
+		beginDate = 2023-01-01 08:00:00
+		dueDate = 2023-12-31 18:00:00
+	}
+
+	parties {
+		application = "Web Of Science" 
+		process = "Integration Process" 
+	}
+
+  clauses {	
+    right requestDocuments {
+      rolePlayer = process
+      operation = request
+      terms {
+          MaxNumberOfOperation(2 per Second), 
+          MessageContent(numeric("count(//body/document)") <= 100),
+          // TODO: evaluate the implementation of this expression
+          // MessageContent("count(//body/document)" <= 50000 per Month) 
+      }
+      onBreach(log("Exceded number of docuemnts"))
+    }
+    
+    obligation responseWithDocuments {
+  
+      rolePlayer =  application
+      operation =  response
+      terms{
+        Timeout(60) 
+      }
+      onBreach(log("Conditon not meet"))
+    }
+  }
+}
