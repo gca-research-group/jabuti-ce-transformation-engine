@@ -1,0 +1,34 @@
+contract DeliveryHiring_R { 
+	dates{
+		beginDate = 2022-01-01 08:00:00 
+		dueDate = 2022-12-31 18:00:00
+	}	  
+   
+	parties{
+		application = "deliverySystem" 
+		process  	= "integrationProcess" 
+	}
+   
+	variables{
+		numberOfAddresses  = "count(//body/perosonalInformation/address/cep)"
+		weight = "//body/package/weight/text()" 
+		productValue = "//body/productValue/text()"  
+	} 
+	
+	clauses{
+		right requestDelivery {
+			/*Setting the days and hours to request a delivery,
+			the maximum request operation by minute and number of address by request*/
+			rolePlayer = process
+			operation = request	
+			terms {			
+				MaxNumberOfOperation(3 per Minute),
+				MessageContent(numeric(numberOfAddresses) == 1), 
+				MessageContent(numeric(weight) == 100), 
+				MessageContent(numeric(productValue) < 20000) 			
+			}
+			// the onSuccess is optional
+			onBreach(log("Request operation did not meet all requirements"))			
+		}
+	}
+}
