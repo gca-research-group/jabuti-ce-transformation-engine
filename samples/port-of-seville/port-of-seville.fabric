@@ -1,0 +1,72 @@
+[
+  {
+    "invoke": "QueryClientId"
+  },
+  {
+    "invoke": "Sign",
+    "args": [
+      "<< asset id >>"
+    ]
+  },
+  {
+    "invoke": "QueryAsset",
+    "args": [
+      "<< asset id >>"
+    ]
+  },
+  {
+    "invoke": "Init",
+    "args": [
+      {
+        "beginDate": "2022-01-28T12:00:00Z",
+        "dueDate": "2023-01-27T11:59:59Z",
+        "parties": {
+          "application": {
+            "name": "SpanishPortSystem",
+            "id": "<< app 1 id >>"
+          },
+          "process": {
+            "name": "Integration Process",
+            "id": "<< app 2 id >>"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "invoke": "RightRequestBerthing",
+    "args": [
+      "<< asset id >>",
+      {
+        "messageContent02": "",
+        "messageContent12": "",
+        "messageContent22": "",
+        "messageContent32": ""
+      }
+    ]
+  },
+  {
+    "invoke": "ObligationRespondToPortProposal",
+    "args": [
+      "<< asset id >>",
+      {
+        "messageContent12": "",
+        "messageContent22": ""
+      }
+    ]
+  },
+  {
+    "invoke": "ProhibitionNotAllowedRequestBerthing",
+    "args": [
+      "<< asset id >>",
+      {}
+    ]
+  },
+  {
+    "invoke": "ObligationRespondToBerthingRequest",
+    "args": [
+      "<< asset id >>",
+      {}
+    ]
+  }
+]

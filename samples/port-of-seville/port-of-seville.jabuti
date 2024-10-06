@@ -1,0 +1,66 @@
+// This contract must be divided into two contracts, 
+// as the clauses refer to two ports of the integration process
+contract DockRequest {
+	dates{
+		beginDate = 2022-01-28 12:00:00
+		dueDate = 2023-01-27 11:59:59
+	}
+	
+	parties{
+		application = "SpanishPortSystem"
+		process =     "Integration Process"
+	}
+
+	clauses{
+		//Clause 1 from clauses presented on Section 5 
+		right requestBerthing {
+			//This clause sets the required data to be able to request berthing.		
+			rolePlayer = process
+			operation = request
+			terms{
+				MessageContent(text("//arriveData") != ""),
+				MessageContent(text("//departureData") != ""),
+				MessageContent(text("//MMSI") != ""),
+				MessageContent(text("//IMO") != "") 	
+			}
+			onBreach(log("Missing required data."))
+		}
+		
+		//Clause 2 from clauses presented on Section 5 
+		obligation respondToPortProposal{
+			//This clause sets the time limit (in seconds) for responding the port proposal
+			rolePlayer = application
+			operation = response
+			terms {			
+				Timeout(3600)
+				MessageContent(text("//proposalID") != "")
+				MessageContent(text("//portServices") != "")
+			}
+			onBreach(log("Timeout for replying has been exceeded"))
+		}
+		
+		//Clause 3 from clauses presented on Section 5 
+		prohibition notAllowedRequestBerthing {
+			//This clause sets some prohibition conditions on a berthing request.
+			rolePlayer = process
+			operation = request
+			
+			terms{
+				TimeInterval(22:00:00 to 08:00:00), 
+				WeekDaysInterval(Sunday to Sunday)					
+			}
+			onBreach(log("Request made outside the valid range"))
+		}
+		
+		//Clause 4 from clauses presented on Section 5 
+		obligation respondToBerthingRequest{
+			//This clause sets the time limit (in seconds) for responding
+			rolePlayer = application
+			operation = response
+			terms{			
+				Timeout(3600)
+			}
+			onBreach(log("Timeout for replying has been exceeded"))
+		}
+	}	
+}
