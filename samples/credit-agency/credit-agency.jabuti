@@ -1,0 +1,48 @@
+//@version -  0.1.0  
+
+contract CreditAgency {
+	dates{
+		beginDate = 2022-01-01 08:00:00
+		dueDate = 2022-12-31 18:00:00
+	}	
+
+	parties{
+		application = "creditAgency"
+		process = "integrationProcess"
+	}
+
+	clauses{	
+		right requestScore {
+			//Setting the limit operation by day and the number of user by request
+			rolePlayer = process 
+			operation = poll
+			terms {
+				MaxNumberOfOperation (1000 per Second ),
+				MessageContent(numeric("count(//CPF)") == 1)
+			}
+			onBreach ( log("Request limit by day exceeded or inconsistent message content") )
+		}
+
+		prohibition requestScoreP {
+			//"Setting the times that when it is prohibited to send a request"	
+			rolePlayer = process
+			operation = request
+
+			terms {		
+				TimeInterval(18:30:00 to 07:30:00) 
+			}	
+			onBreach(log("Request made outside of allowed hours"))
+		}
+
+		obligation responseWithScore {
+			//Setting the time limit for responding to a resquest
+			rolePlayer = application
+			operation = response
+			
+			terms{
+				Timeout(60) 
+			}
+			onBreach( log("Timeout for replying has been exceeded") )
+		}
+	}
+} 

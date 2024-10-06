@@ -1,0 +1,59 @@
+[
+  {
+    "invoke": "QueryClientId"
+  },
+  {
+    "invoke": "Sign",
+    "args": [
+      "<< asset id >>"
+    ]
+  },
+  {
+    "invoke": "QueryAsset",
+    "args": [
+      "<< asset id >>"
+    ]
+  },
+  {
+    "invoke": "Init",
+    "args": [
+      {
+        "beginDate": "2022-01-01T08:00:00Z",
+        "dueDate": "2022-12-31T18:00:00Z",
+        "parties": {
+          "application": {
+            "name": "creditAgency",
+            "id": "<< app 1 id >>"
+          },
+          "process": {
+            "name": "integrationProcess",
+            "id": "<< app 2 id >>"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "invoke": "RightRequestScore",
+    "args": [
+      "<< asset id >>",
+      {
+        "messageContent02": ""
+      }
+    ]
+  },
+  {
+    "invoke": "ProhibitionRequestScoreP",
+    "args": [
+      "<< asset id >>",
+      {}
+    ]
+  },
+  {
+    "invoke": "ObligationResponseWithScore",
+    "args": [
+      "<< asset id >>",
+      {}
+    ]
+  }
+]
