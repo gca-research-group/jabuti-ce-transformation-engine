@@ -16,7 +16,10 @@ import {
   TimeoutContext,
   ClauseContext,
   OnBreachContext,
-  DatetimeContext
+  DatetimeContext,
+  MessageContentTextContext,
+  MessageContentBooleanContext,
+  type MessageContentNumericContext
 } from 'jabuti-dsl-grammar-antlr/JabutiGrammarParser';
 import { capitalizeFirst } from '../utils';
 import { type Contract, type Clause, type Variable } from '../models';
@@ -99,7 +102,7 @@ export class CanonicalParser {
               snake: `${clauseType}_${name}`
             };
             const rolePlayer = _clauses.rolePlayer().children?.[2].text;
-            const operation = _clauses.rolePlayer().children?.[2].text;
+            const operation = _clauses.operation().children?.[2].text;
             const terms: any[] = [];
             let variables: Record<string, Variable> = {};
             const messages = { error: '', success: '' };
@@ -219,56 +222,90 @@ export class CanonicalParser {
     // MessageContent('xpath')
     // MessageContent('jsonpath')
     if (term.childCount === 4) {
-      return [
-        {
-          name: { pascal: `MessageContent${index}`, camel: `messageContent${index}`, snake: `messageContent_${index}` },
-          type: 'boolean'
-        }
-      ];
+      const booleanContext = term.children?.[2];
+      if (!(booleanContext instanceof MessageContentBooleanContext)) {
+        return;
+      }
+
+      const argument: string = booleanContext.children?.[2].text ?? '';
+
+      if (argument?.startsWith('"')) {
+        return [
+          {
+            name: {
+              pascal: `MessageContent${index}`,
+              camel: `messageContent${index}`,
+              snake: `messageContent_${index}`
+            },
+            type: 'BOOLEAN'
+          }
+        ];
+      }
+
+      if (argument) {
+        return [
+          {
+            name: { pascal: capitalizeFirst(argument), camel: argument, snake: argument },
+            type: 'BOOLEAN'
+          }
+        ];
+      }
     }
 
-    const value1 = term.children?.[2];
-    const value2 = term.children?.[4];
+    const context1 = term.children?.[2];
+    const context2 = term.children?.[4];
     const comparator = term.children?.[3].text as unknown as string;
-    const type = ['==', '!='].includes(comparator) ? 'TEXT' : 'NUMBER';
+    const type = context1 instanceof MessageContentTextContext ? 'TEXT' : 'NUMBER';
     const response = [];
 
-    if (!isNaN(Number(value1?.text))) {
-      response.push(value1?.text);
-    } else if (value1 && !value1.text.startsWith('"')) {
-      response.push({
-        name: { pascal: capitalizeFirst(value1.text), camel: value1.text, snake: value1.text },
-        type
-      });
+    if (!isNaN(Number(context1?.text))) {
+      response.push(context1?.text);
+    } else if (context1 && context1.text.startsWith('"')) {
+      response.push(context1?.text);
     } else {
-      response.push({
-        name: {
-          pascal: `MessageContent${index}1`,
-          camel: `messageContent${index}1`,
-          snake: `messageContent_${index}_1`
-        },
-        type
-      });
+      const value1: string =
+        (context1 as MessageContentTextContext | MessageContentNumericContext).children?.[2].text ?? '';
+      if (value1.startsWith('"')) {
+        response.push({
+          name: {
+            pascal: `MessageContent${index}2`,
+            camel: `messageContent${index}2`,
+            snake: `messageContent_${index}_2`
+          },
+          type
+        });
+      } else {
+        response.push({
+          name: { pascal: capitalizeFirst(value1), camel: value1, snake: value1 },
+          type
+        });
+      }
     }
 
     response.push(comparator);
 
-    if (!isNaN(Number(value2?.text))) {
-      response.push(value2?.text);
-    } else if (value2 && !value2.text.startsWith('"')) {
-      response.push({
-        name: { pascal: capitalizeFirst(value2.text), camel: value2.text, snake: value2.text },
-        type
-      });
+    if (!isNaN(Number(context2?.text))) {
+      response.push(context2?.text);
+    } else if (context2 && context2.text.startsWith('"')) {
+      response.push(context2?.text);
     } else {
-      response.push({
-        name: {
-          pascal: `MessageContent${index}2`,
-          camel: `messageContent${index}2`,
-          snake: `messageContent_${index}_2`
-        },
-        type
-      });
+      const value2: string =
+        (context2 as MessageContentTextContext | MessageContentNumericContext).children?.[2].text ?? '';
+      if (value2.startsWith('"')) {
+        response.push({
+          name: {
+            pascal: `MessageContent${index}2`,
+            camel: `messageContent${index}2`,
+            snake: `messageContent_${index}_2`
+          },
+          type
+        });
+      } else {
+        response.push({
+          name: { pascal: capitalizeFirst(value2), camel: value2, snake: value2 },
+          type
+        });
+      }
     }
 
     return response;

@@ -5,14 +5,17 @@ import {
   type DueDateContext,
   type BeginDateContext,
   type DatesContext,
-  type MessageContentContext,
   type ClausesContext,
   type ApplicationContext,
   type OperationContext,
   type RolePlayerContext,
   type ProcessContext,
   type TermsContext,
-  type DatetimeContext
+  type DatetimeContext,
+  type MessageContentContext,
+  MessageContentBooleanContext,
+  MessageContentNumericContext,
+  MessageContentTextContext
 } from 'jabuti-dsl-grammar-antlr/JabutiGrammarParser';
 import { findDuplicateWords, getDaysInMonth, string2Date } from '../utils';
 
@@ -118,13 +121,43 @@ export class JabutiGrammarListenerImpl implements JabutiGrammarListener {
   }
 
   exitMessageContent(ctx: MessageContentContext) {
-    if (
-      ctx.childCount === 4 &&
-      !['$.', '//', 'sum($.', 'count($.', 'sum(//', 'count(//'].some(item =>
-        ctx.children?.[2].text.startsWith(`"${item}`)
-      )
-    ) {
-      throw new ValidationError('MessageContent should either contain an xpath or a jsonpath', ctx);
+    // if (
+    //   ctx.childCount === 4 &&
+    //   !['$.', '//', 'sum($.', 'count($.', 'sum(//', 'count(//'].some(item =>
+    //     ctx.children?.[2].text.startsWith(`"${item}`)
+    //   )
+    // ) {
+    //   throw new ValidationError('MessageContent should either contain an xpath or a jsonpath', ctx);
+    // }
+
+    if (ctx.childCount === 4 && !(ctx.children?.[2] instanceof MessageContentBooleanContext)) {
+      throw new ValidationError('Invalid MessageContent, expected MessageContent(boolean(<< expression >>)) ', ctx);
+    }
+
+    if (ctx.childCount !== 6 && ctx.childCount !== 4) {
+      throw new ValidationError('Invalid MessageContent', ctx);
+    }
+
+    if (ctx.childCount === 6) {
+      const context1 = ctx.children?.[2];
+      const context2 = ctx.children?.[4];
+      if (
+        !(context1 instanceof MessageContentNumericContext) &&
+        !(context1 instanceof MessageContentTextContext) &&
+        isNaN(Number(context1?.text)) &&
+        !context1?.text.startsWith('"')
+      ) {
+        throw new ValidationError('[1] Invalid MessageContent', ctx);
+      }
+
+      if (
+        !(context2 instanceof MessageContentNumericContext) &&
+        !(context2 instanceof MessageContentTextContext) &&
+        isNaN(Number(context2?.text)) &&
+        !context2?.text.startsWith('"')
+      ) {
+        throw new ValidationError('[2] Invalid MessageContent', ctx);
+      }
     }
   }
 
