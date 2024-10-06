@@ -1,0 +1,45 @@
+[
+  {
+    "invoke": "QueryClientId"
+  },
+  {
+    "invoke": "Sign",
+    "args": [
+      "<< asset id >>"
+    ]
+  },
+  {
+    "invoke": "QueryAsset",
+    "args": [
+      "<< asset id >>"
+    ]
+  },
+  {
+    "invoke": "Init",
+    "args": [
+      {
+        "beginDate": "2023-01-01T08:30:00Z",
+        "dueDate": "2024-01-01T08:30:00Z",
+        "parties": {
+          "application": {
+            "name": "deliverySystem",
+            "id": "<< app 1 id >>"
+          },
+          "process": {
+            "name": "integrationProcess",
+            "id": "<< app 2 id >>"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "invoke": "ObligationResponseOrder",
+    "args": [
+      "<< asset id >>",
+      {
+        "messageContent1": ""
+      }
+    ]
+  }
+]
