@@ -77,11 +77,19 @@ type ObligationPurchasesGreatherThan300USDArgs struct {
 	ExpectedDate int `json:"expectedDate"`
 }
 
+type Request struct {
+	clientId  string
+	createdAt time.Time
+}
+
 type Asset struct {
 	Parties   Parties
 	BeginDate time.Time
 	DueDate   time.Time
 	IsSigned  bool
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	Requests  map[string]Request
 
 	ObligationPurchasesBetween100USD300USD ObligationPurchasesBetween100USD300USD
 
@@ -252,6 +260,8 @@ func (s *SmartContract) Init(ctx contractapi.TransactionContextInterface, assetR
 	parties.Process.IsSigned = false
 
 	asset.Parties = parties
+	asset.CreatedAt = time.Now()
+	asset.Requests = make(map[string]Request)
 
 	assetId := uuid.New().String()
 

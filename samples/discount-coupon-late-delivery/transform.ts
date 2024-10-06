@@ -2,13 +2,15 @@ import { HyperledgerFabricGolangFactory } from './../../src/factories/hyperledge
 import { readFileSync, writeFileSync } from 'fs';
 import { execSync } from 'child_process';
 
-const cwd = './samples/discount-coupon-late-delivery';
+const contract = 'discount-coupon-late-delivery';
 
-const content = readFileSync(`${cwd}/discount-coupon-late-delivery.jabuti`, 'utf-8');
+const cwd = `./samples/${contract}`;
+
+const content = readFileSync(`${cwd}/${contract}.jabuti`, 'utf-8');
 const files = new HyperledgerFabricGolangFactory().transform(content);
 
-writeFileSync(`${cwd}/discount-coupon-late-delivery.go`, files.content);
+writeFileSync(`${cwd}/${contract}.go`, files.content);
 writeFileSync(`${cwd}/go.mod`, files.mod);
-writeFileSync(`${cwd}/discount-coupon-late-delivery.fabric`, files.spydra);
+writeFileSync(`${cwd}/${contract}.fabric`, files.spydra);
 
 execSync('go mod tidy', { cwd });

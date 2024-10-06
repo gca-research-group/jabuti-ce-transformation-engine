@@ -3,7 +3,6 @@
  * Policy 2: Customers who have spent $100.00 or more and affected by delayed deliveries are entitled to 3% discount vouchers to spend on subsequent purchases.
  * Policy 3: Policy 1 and Policy 2 apply only from 2024-06-06 to 2024-06-10, inclusive.
 */
-
 contract DiscountCouponLateDelivery {
   dates {
     beginDate = 2024-06-06 00:00
@@ -16,7 +15,7 @@ contract DiscountCouponLateDelivery {
   }
 
   variables {
-    totalPurchaseAmount = MessageContent("sum($.[*].value)")
+    totalPurchaseAmount = "sum($.[*].value)"
     deliveryDate = "$.deliveryDate"
     expectedDate = "$.expectedDate"
   }
@@ -27,9 +26,9 @@ contract DiscountCouponLateDelivery {
       operation = response
 
       terms {
-        MessageContent(totalPurchaseAmount >= 100),
-        MessageContent(totalPurchaseAmount < 300),
-        MessageContent(deliveryDate > expectedDate)
+        MessageContent(numeric(totalPurchaseAmount) >= 100),
+        MessageContent(numeric(totalPurchaseAmount) < 300),
+        MessageContent(numeric(deliveryDate) > numeric(expectedDate))
       }
 
       onBreach(log("[100USD300USD] the delivery date was later than the expected date"))
@@ -40,8 +39,8 @@ contract DiscountCouponLateDelivery {
       operation = response
 
       terms {
-        MessageContent(totalPurchaseAmount > 300),
-        MessageContent(deliveryDate > expectedDate)
+        MessageContent(numeric(totalPurchaseAmount) > 300),
+        MessageContent(numeric(deliveryDate) > numeric(expectedDate))
       }
 
       onBreach(log("[300USD] the delivery date was later than the expected date"))
