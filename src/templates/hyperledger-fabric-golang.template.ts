@@ -88,18 +88,26 @@ type MaxNumberOfOperation struct {
   <% if (clause.variables?.length) { %>
 		type <%= clause.name.pascal %>Args struct {
 			<% clause.variables.forEach(variable => { %>
-				<%= variable.name.pascal %> <%= variable.type === 'TEXT' ? string : 'int' %> \`json:"<%= variable.name.camel %>"\`
+				<%= variable.name.pascal %> <%= variable.type === 'TEXT' ? 'string' : (variable.type === 'BOOLEAN' ? 'bool' : 'int') %> \`json:"<%= variable.name.camel %>"\`
 			<% }) %>
 		}
 	<% } %>
 
 <% }) %>
 
+type Request struct {
+	clientId string
+	createdAt time.Time
+}
+
 type Asset struct {
 	Parties   Parties
 	BeginDate time.Time
 	DueDate   time.Time
 	IsSigned  bool
+	CreatedAt time.Time
+	UpdatedAt time.Time
+  Requests  map[string]Request
 
   <% clauses.forEach(clause => { %>
     <%= clause.name.pascal %> <%= clause.name.pascal %> 
@@ -270,6 +278,8 @@ func (s *SmartContract) Init(ctx contractapi.TransactionContextInterface, assetR
 	parties.Process.IsSigned = false
 
 	asset.Parties = parties
+	asset.CreatedAt = time.Now()
+  asset.Requests = make(map[string]Request)
 
   <% clauses.forEach(clause => { %>
     <% clause.terms.forEach(term => { %>
@@ -375,22 +385,51 @@ func (s *SmartContract) QueryClientId(ctx contractapi.TransactionContextInterfac
 }
 
 <% clauses.forEach(clause => { %>
-  func (s *SmartContract) Clause<%= clause.name.pascal %> ( ctx contractapi.TransactionContextInterface, assetId string, args <%= clause.name.pascal %>Args  ) (bool, error) {
+  func (s *SmartContract) Clause<%= clause.name.pascal %> ( ctx contractapi.TransactionContextInterface, assetId string <%= clause.variables?.length ? \`, args \${clause.name.pascal}Args\` : '' %> <%= clause.terms.some(term => term.type === 'timeout') ? ', requestId string' : '' %>) (string, bool, error) {
 
     var err error
     var asset *Asset
 
+    executionId := uuid.New().String()
+
     if asset, err = s.QueryAsset(ctx, assetId); err != nil {
-      return false, err
+      return executionId, false, err
     }
 
     if err = s.isBetweenBeginDateAndDueDate(asset); err != nil {
-      return false, err
+      return executionId, false, err
     }
 
     if err = s.assetIsSigned(asset); err != nil {
-      return false, err
+      return executionId, false, err
     }
+
+    <% if (clause.operation === 'request') { %>
+      createdAt := time.Now()
+
+      var clientId string
+
+      if clientId, err = s.QueryClientId(ctx); err != nil {
+        return executionId, false, err
+      }
+
+      asset.Requests[executionId] = Request{
+        clientId: clientId,
+        createdAt: createdAt,
+      }
+
+      s.putState(ctx, assetId, asset)
+    <% } %>
+
+    <% if (clause.terms.some(term => term.type === 'timeout')) { %>
+      request, exists := asset.Requests[requestId]
+	
+      if !exists {
+        return "", false, fmt.Errorf("no request found for %s", requestId)
+      }
+
+      accessDateTime := request.createdAt
+    <% } %>
 
     isValid := true;
 
@@ -415,8 +454,8 @@ func (s *SmartContract) QueryClientId(ctx contractapi.TransactionContextInterfac
         isValid = isValid && args.<%= term.variables[0].name.pascal %>
       <% } %>
 
-	    <% if (term.type === 'messageContent' && term.variables.length == 2) { %>
-        isValid = isValid && <%= term.variables[0]?.name ? 'args.' + term.variables[0]?.name?.pascal : term.variables[0]  %> <%- term.comparator %> <%= term.variables[1]?.name?.pascal ? 'args.' + term.variables[1]?.name?.pascal : term.variables[1] %>
+		  <% if (term.type === 'messageContent' && term.variables.length == 2) { %>
+        isValid = isValid && <%- term.variables[0]?.name ? 'args.' + term.variables[0]?.name?.pascal : term.variables[0]  %> <%- term.comparator %> <%- term.variables[1]?.name?.pascal ? 'args.' + term.variables[1]?.name?.pascal : term.variables[1] %>
       <% } %>
 
       <% if (term.type === 'maxNumberOfOperation') { %>
@@ -436,18 +475,12 @@ func (s *SmartContract) QueryClientId(ctx contractapi.TransactionContextInterfac
 
     <% }) %>
 
-    <% if (clause.operation === 'request') { %>
-      <% timeoutTerms.forEach(timeout => { %>
-        asset.<%= timeout.clauseName.pascal %>.<%= timeout.termName.pascal %>.End  = accessDateTime.Add(time.Duration(asset.<%= timeout.clauseName.pascal %>.<%= timeout.termName.pascal %>.Increase) * time.Second)
-      <% }) %>
-    <% } %>
-
     if !isValid { <% if (clause.messages?.error) { %>
-      return isValid, fmt.Errorf(<%- clause.messages.error %>) <% } else { %>
-      return isValid, fmt.Errorf("error executing clause: <%- clause.name.pascal %>")<% } %>
+      return executionId, isValid, fmt.Errorf(<%- clause.messages.error %>) <% } else { %>
+      return executionId, isValid, fmt.Errorf("error executing clause: <%- clause.name.pascal %>")<% } %>
     }
 
-    return isValid, nil;
+    return executionId, isValid, nil;
   }
   <% }) %>
 
