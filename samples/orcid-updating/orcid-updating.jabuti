@@ -1,0 +1,38 @@
+contract OrcidUpdating{
+
+	dates{
+		beginDate = 2023-01-01 08:00:00
+		dueDate = 2023-12-31 18:00:00 
+	}	
+
+	parties{	
+		application = "Orcid" 
+		process  	= "Integration Process" 
+	}
+	
+	clauses{
+
+		right requestUpdate {
+			rolePlayer = process
+			operation = request
+			terms {		
+				MaxNumberOfOperation (8 per Second),
+				MessageContent(text("//author/orcid/id/text()") != ""),
+				//MessageContent(text("//article/title/text()") != "")
+			}
+			onBreach(log("Request operation did not meet all requirements"))					
+		}
+		
+		obligation responseWorks {
+			rolePlayer = application
+			operation = response
+			terms {
+				Timeout(5)
+			}
+			onBreach(log("response performed outside of time limit"))
+		}
+	}
+}
+	
+	
+	
