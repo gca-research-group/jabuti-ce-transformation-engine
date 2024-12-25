@@ -18,15 +18,15 @@
     "invoke": "Init",
     "args": [
       {
-        "beginDate": "2024-06-06T00:00:00Z",
-        "dueDate": "2024-06-10T23:59:00Z",
+        "beginDate": "2024-01-01T00:00:00Z",
+        "dueDate": "2024-12-31T23:59:00Z",
         "parties": {
           "application": {
-            "name": "Delivery App",
+            "name": "deliverySystem",
             "id": "<< app 1 id >>"
           },
           "process": {
-            "name": "Integration Process",
+            "name": "integrationProcess",
             "id": "<< app 2 id >>"
           }
         }
@@ -34,13 +34,13 @@
     ]
   },
   {
-    "invoke": "ObligationPurchasesBetween100USD300USD",
+    "invoke": "ClauseObligationPurchasesBetween100USD300USD",
     "args": [
       "<< asset id >>",
       {
-        "totalPurchaseAmount": "",
-        "deliveryDate": "",
-        "expectedDate": ""
+        "totalPurchaseAmount": 110,
+        "deliveryDate": 1729097184,
+        "expectedDate": 1729097185
       }
     ]
   },

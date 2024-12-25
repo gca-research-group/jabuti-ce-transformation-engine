@@ -25,6 +25,11 @@ type SmartContract struct {
 	contractapi.Contract
 }
 
+type Response struct {
+	ExecutionId string
+	IsValid     bool
+}
+
 type Party struct {
 	Id            string
 	Name          string
@@ -55,31 +60,20 @@ type MaxNumberOfOperation struct {
 	TimeUnit string    `json:"timeUnit"`
 }
 
-type ObligationPurchasesBetween100USD300USD struct {
-}
-
 type ObligationPurchasesBetween100USD300USDArgs struct {
 	TotalPurchaseAmount int `json:"totalPurchaseAmount"`
 
-	DeliveryDate int `json:"deliveryDate"`
-
 	ExpectedDate int `json:"expectedDate"`
-}
 
-type ObligationPurchasesGreatherThan300USD struct {
+	DeliveryDate int `json:"deliveryDate"`
 }
 
 type ObligationPurchasesGreatherThan300USDArgs struct {
 	TotalPurchaseAmount int `json:"totalPurchaseAmount"`
 
-	DeliveryDate int `json:"deliveryDate"`
-
 	ExpectedDate int `json:"expectedDate"`
-}
 
-type Request struct {
-	clientId  string
-	createdAt time.Time
+	DeliveryDate int `json:"deliveryDate"`
 }
 
 type Asset struct {
@@ -89,11 +83,6 @@ type Asset struct {
 	IsSigned  bool
 	CreatedAt time.Time
 	UpdatedAt time.Time
-	Requests  map[string]Request
-
-	ObligationPurchasesBetween100USD300USD ObligationPurchasesBetween100USD300USD
-
-	ObligationPurchasesGreatherThan300USD ObligationPurchasesGreatherThan300USD
 }
 
 type PartyRequest struct {
@@ -261,7 +250,6 @@ func (s *SmartContract) Init(ctx contractapi.TransactionContextInterface, assetR
 
 	asset.Parties = parties
 	asset.CreatedAt = time.Now()
-	asset.Requests = make(map[string]Request)
 
 	assetId := uuid.New().String()
 
@@ -358,21 +346,29 @@ func (s *SmartContract) QueryClientId(ctx contractapi.TransactionContextInterfac
 	return clientID, nil
 }
 
-func (s *SmartContract) ClauseObligationPurchasesBetween100USD300USD(ctx contractapi.TransactionContextInterface, assetId string, args ObligationPurchasesBetween100USD300USDArgs) (bool, error) {
+func (s *SmartContract) ClauseObligationPurchasesBetween100USD300USD(ctx contractapi.TransactionContextInterface, assetId string, args ObligationPurchasesBetween100USD300USDArgs) (Response, error) {
 
 	var err error
 	var asset *Asset
+	var res Response
+
+	executionId := uuid.New().String()
+
+	res = Response{
+		ExecutionId: executionId,
+		IsValid:     false,
+	}
 
 	if asset, err = s.QueryAsset(ctx, assetId); err != nil {
-		return false, err
+		return res, err
 	}
 
 	if err = s.isBetweenBeginDateAndDueDate(asset); err != nil {
-		return false, err
+		return res, err
 	}
 
 	if err = s.assetIsSigned(asset); err != nil {
-		return false, err
+		return res, err
 	}
 
 	isValid := true
@@ -381,43 +377,61 @@ func (s *SmartContract) ClauseObligationPurchasesBetween100USD300USD(ctx contrac
 
 	isValid = isValid && args.TotalPurchaseAmount < 300
 
-	isValid = isValid && args.DeliveryDate > args.ExpectedDate
+	isValid = isValid && args.ExpectedDate > args.DeliveryDate
 
-	if !isValid {
-		return isValid, fmt.Errorf("[100USD300USD] the delivery date was later than the expected date")
+	res = Response{
+		ExecutionId: executionId,
+		IsValid:     isValid,
 	}
 
-	return isValid, nil
+	if !isValid {
+		return res, fmt.Errorf("[100USD300USD] the delivery date was later than the expected date")
+	}
+
+	return res, nil
 }
 
-func (s *SmartContract) ClauseObligationPurchasesGreatherThan300USD(ctx contractapi.TransactionContextInterface, assetId string, args ObligationPurchasesGreatherThan300USDArgs) (bool, error) {
+func (s *SmartContract) ClauseObligationPurchasesGreatherThan300USD(ctx contractapi.TransactionContextInterface, assetId string, args ObligationPurchasesGreatherThan300USDArgs) (Response, error) {
 
 	var err error
 	var asset *Asset
+	var res Response
+
+	executionId := uuid.New().String()
+
+	res = Response{
+		ExecutionId: executionId,
+		IsValid:     false,
+	}
 
 	if asset, err = s.QueryAsset(ctx, assetId); err != nil {
-		return false, err
+		return res, err
 	}
 
 	if err = s.isBetweenBeginDateAndDueDate(asset); err != nil {
-		return false, err
+		return res, err
 	}
 
 	if err = s.assetIsSigned(asset); err != nil {
-		return false, err
+		return res, err
 	}
 
 	isValid := true
 
 	isValid = isValid && args.TotalPurchaseAmount > 300
 
-	isValid = isValid && args.DeliveryDate > args.ExpectedDate
+	isValid = isValid && args.ExpectedDate > args.DeliveryDate
 
-	if !isValid {
-		return isValid, fmt.Errorf("[300USD] the delivery date was later than the expected date")
+	res = Response{
+		ExecutionId: executionId,
+		IsValid:     isValid,
 	}
 
-	return isValid, nil
+	if !isValid {
+		return res, fmt.Errorf("[300USD] the delivery date was later than the expected date")
+	}
+
+	return res, nil
 }
 
 func main() {

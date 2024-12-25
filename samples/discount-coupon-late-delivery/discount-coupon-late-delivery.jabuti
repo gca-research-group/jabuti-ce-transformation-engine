@@ -1,12 +1,7 @@
-/**
- * Policy 1: Customers who have spent $300.00 or more and affected by delayed deliveries are entitled to 5% discount vouchers to spend on subsequent purchases.
- * Policy 2: Customers who have spent $100.00 or more and affected by delayed deliveries are entitled to 3% discount vouchers to spend on subsequent purchases.
- * Policy 3: Policy 1 and Policy 2 apply only from 2024-06-06 to 2024-06-10, inclusive.
-*/
 contract DiscountCouponLateDelivery {
   dates {
-    beginDate = 2024-06-06 00:00
-    dueDate = 2024-06-10 23:59
+    beginDate = 2024-01-01 00:00
+    dueDate = 2024-12-31 23:59
   }
 
   parties {
@@ -28,7 +23,7 @@ contract DiscountCouponLateDelivery {
       terms {
         MessageContent(numeric(totalPurchaseAmount) >= 100),
         MessageContent(numeric(totalPurchaseAmount) < 300),
-        MessageContent(numeric(deliveryDate) > numeric(expectedDate))
+        MessageContent(numeric(expectedDate) > numeric(deliveryDate))
       }
 
       onBreach(log("[100USD300USD] the delivery date was later than the expected date"))
@@ -40,7 +35,7 @@ contract DiscountCouponLateDelivery {
 
       terms {
         MessageContent(numeric(totalPurchaseAmount) > 300),
-        MessageContent(numeric(deliveryDate) > numeric(expectedDate))
+        MessageContent(numeric(expectedDate) > numeric(deliveryDate))
       }
 
       onBreach(log("[300USD] the delivery date was later than the expected date"))
