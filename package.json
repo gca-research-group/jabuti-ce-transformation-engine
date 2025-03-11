@@ -34,7 +34,7 @@
   },
   "dependencies": {
     "antlr4ts": "^0.5.0-alpha.4",
-    "jabuti-dsl-grammar-antlr": "file:jabuti-dsl-grammar-antlr-0.0.2.tgz"
+    "jabuti-dsl-grammar-antlr": "file:jabuti-dsl-grammar-antlr-0.0.1.tgz"
   },
   "repository": {
     "type": "git",

@@ -352,21 +352,23 @@ func (s *SmartContract) QueryClientId(ctx contractapi.TransactionContextInterfac
 	return clientID, nil
 }
 
-func (s *SmartContract) ClauseRightRequestScore(ctx contractapi.TransactionContextInterface, assetId string, args RightRequestScoreArgs) (bool, error) {
+func (s *SmartContract) ClauseRightRequestScore(ctx contractapi.TransactionContextInterface, assetId string, args RightRequestScoreArgs) (string, bool, error) {
 
 	var err error
 	var asset *Asset
 
+	executionId := uuid.New().String()
+
 	if asset, err = s.QueryAsset(ctx, assetId); err != nil {
-		return false, err
+		return executionId, false, err
 	}
 
 	if err = s.isBetweenBeginDateAndDueDate(asset); err != nil {
-		return false, err
+		return executionId, false, err
 	}
 
 	if err = s.assetIsSigned(asset); err != nil {
-		return false, err
+		return executionId, false, err
 	}
 
 	isValid := true
@@ -374,39 +376,40 @@ func (s *SmartContract) ClauseRightRequestScore(ctx contractapi.TransactionConte
 	isValid = isValid && args.MessageContent02 == 1
 
 	if !isValid {
-		return isValid, fmt.Errorf("Request limit by day exceeded or inconsistent message content")
+		return executionId, isValid, fmt.Errorf("Request limit by day exceeded or inconsistent message content")
 	}
 
-	return isValid, nil
+	return executionId, isValid, nil
 }
 
-func (s *SmartContract) ClauseProhibitionRequestScoreP(ctx contractapi.TransactionContextInterface, assetId string) (bool, error) {
+func (s *SmartContract) ClauseProhibitionRequestScoreP(ctx contractapi.TransactionContextInterface, assetId string) (string, bool, error) {
 
 	var err error
 	var asset *Asset
 
+	executionId := uuid.New().String()
+
 	if asset, err = s.QueryAsset(ctx, assetId); err != nil {
-		return false, err
+		return executionId, false, err
 	}
 
 	if err = s.isBetweenBeginDateAndDueDate(asset); err != nil {
-		return false, err
+		return executionId, false, err
 	}
 
 	if err = s.assetIsSigned(asset); err != nil {
-		return false, err
+		return executionId, false, err
 	}
 
-	id := uuid.New().String()
 	createdAt := time.Now()
 
 	var clientId string
 
 	if clientId, err = s.QueryClientId(ctx); err != nil {
-		return false, err
+		return executionId, false, err
 	}
 
-	asset.Requests[id] = Request{
+	asset.Requests[executionId] = Request{
 		clientId:  clientId,
 		createdAt: createdAt,
 	}
@@ -416,33 +419,35 @@ func (s *SmartContract) ClauseProhibitionRequestScoreP(ctx contractapi.Transacti
 	isValid := true
 
 	if !isValid {
-		return isValid, fmt.Errorf("Request made outside of allowed hours")
+		return executionId, isValid, fmt.Errorf("Request made outside of allowed hours")
 	}
 
-	return isValid, nil
+	return executionId, isValid, nil
 }
 
-func (s *SmartContract) ClauseObligationResponseWithScore(ctx contractapi.TransactionContextInterface, assetId string, requestId string) (bool, error) {
+func (s *SmartContract) ClauseObligationResponseWithScore(ctx contractapi.TransactionContextInterface, assetId string, requestId string) (string, bool, error) {
 
 	var err error
 	var asset *Asset
 
+	executionId := uuid.New().String()
+
 	if asset, err = s.QueryAsset(ctx, assetId); err != nil {
-		return false, err
+		return executionId, false, err
 	}
 
 	if err = s.isBetweenBeginDateAndDueDate(asset); err != nil {
-		return false, err
+		return executionId, false, err
 	}
 
 	if err = s.assetIsSigned(asset); err != nil {
-		return false, err
+		return executionId, false, err
 	}
 
 	request, exists := asset.Requests[requestId]
 
 	if !exists {
-		return false, fmt.Errorf("no request found for %s", requestId)
+		return "", false, fmt.Errorf("no request found for %s", requestId)
 	}
 
 	accessDateTime := request.createdAt
@@ -452,10 +457,10 @@ func (s *SmartContract) ClauseObligationResponseWithScore(ctx contractapi.Transa
 	isValid = isValid && (accessDateTime.Before(asset.ObligationResponseWithScore.ObligationResponseWithScoreTimeout0.End) || accessDateTime.Equal(asset.ObligationResponseWithScore.ObligationResponseWithScoreTimeout0.End))
 
 	if !isValid {
-		return isValid, fmt.Errorf("Timeout for replying has been exceeded")
+		return executionId, isValid, fmt.Errorf("Timeout for replying has been exceeded")
 	}
 
-	return isValid, nil
+	return executionId, isValid, nil
 }
 
 func main() {
