@@ -13,9 +13,7 @@ import {
   type TermsContext,
   type DatetimeContext,
   type MessageContentContext,
-  MessageContentBooleanContext,
-  MessageContentNumericContext,
-  MessageContentTextContext
+  MessageContentBooleanContext
 } from 'jabuti-dsl-grammar-antlr/JabutiGrammarParser';
 import { findDuplicateWords, getDaysInMonth, string2Date } from '../utils';
 
@@ -142,17 +140,17 @@ export class JabutiGrammarListenerImpl implements JabutiGrammarListener {
       const context1 = ctx.children?.[2];
       const context2 = ctx.children?.[4];
       if (
-        !(context1 instanceof MessageContentNumericContext) &&
-        !(context1 instanceof MessageContentTextContext) &&
+        !context1?.text.includes('numeric(') &&
+        !context1?.text.includes('text(') &&
         isNaN(Number(context1?.text)) &&
         !context1?.text.startsWith('"')
       ) {
-        throw new ValidationError('[1] Invalid MessageContent', ctx);
+        throw new ValidationError(`[1] Invalid MessageContent`, ctx);
       }
 
       if (
-        !(context2 instanceof MessageContentNumericContext) &&
-        !(context2 instanceof MessageContentTextContext) &&
+        !context2?.text.includes('numeric(') &&
+        !context2?.text.includes('text(') &&
         isNaN(Number(context2?.text)) &&
         !context2?.text.startsWith('"')
       ) {
