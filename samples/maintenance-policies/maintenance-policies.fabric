@@ -1,0 +1,46 @@
+[
+  {
+    "invoke": "QueryClientId"
+  },
+  {
+    "invoke": "Sign",
+    "args": [
+      "<< asset id >>"
+    ]
+  },
+  {
+    "invoke": "QueryAsset",
+    "args": [
+      "<< asset id >>"
+    ]
+  },
+  {
+    "invoke": "Init",
+    "args": [
+      {
+        "beginDate": "2025-01-01T00:00:00Z",
+        "dueDate": "2025-12-31T00:00:00Z",
+        "parties": {
+          "application": {
+            "name": "Ordering",
+            "id": "<< app 1 id >>"
+          },
+          "process": {
+            "name": "Integration",
+            "id": "<< app 2 id >>"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "invoke": "RightMaintenanceConditions",
+    "args": [
+      "<< asset id >>",
+      {
+        "qtCustomers": "",
+        "schedulingTime": ""
+      }
+    ]
+  }
+]

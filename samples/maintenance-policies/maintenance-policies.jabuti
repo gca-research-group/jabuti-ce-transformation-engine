@@ -1,0 +1,27 @@
+contract MaintenancePolicies {
+  dates {
+    beginDate = 2025-01-01, dueDate = 2025-12-31
+  }
+
+  parties {
+    application = "Ordering", process = "Integration"
+  }
+
+  variables {
+    qtCustomers = "$.qtCustomers", schedulingTime = "$.schedulingTime"
+  }
+
+  clauses {
+    right maintenanceConditions {
+      rolePlayer = application, operation = request
+
+      terms {
+        TimeInterval(00:00:00 to 06:00:00),
+        MessageContent(numeric(qtCustomers) < 500),
+        MessageContent(numeric(schedulingTime) >= 48)
+      }
+
+      onBreach(log("Unauthorised maintenance"))
+    }
+  }
+}
